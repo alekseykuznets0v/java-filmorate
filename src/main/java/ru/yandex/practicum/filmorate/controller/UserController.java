@@ -52,4 +52,7 @@ public class UserController {
         return ++identifier;
     }
 
+    public HashMap<Integer, User> getUsers() {
+        return users;
+    }
 }

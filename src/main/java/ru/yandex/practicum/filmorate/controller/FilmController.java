@@ -45,4 +45,8 @@ public class FilmController {
     private int getIdentifier(){
         return ++identifier;
     }
+
+    public HashMap<Integer, Film> getFilms() {
+        return films;
+    }
 }
