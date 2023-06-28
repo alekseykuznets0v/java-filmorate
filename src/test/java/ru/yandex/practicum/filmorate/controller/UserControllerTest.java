@@ -20,9 +20,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
 class UserControllerTest {
-    User user;
+    private User user;
     @Autowired
-    UserController userController;
+    private UserController userController;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -53,9 +53,10 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").exists());
 
-        assertEquals(1, userController.getAllUsers().size());
+        final int usersSize = userController.getAllUsers().size();
+        assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
 
         final User savedUser = userController.getUsers().get(1);
-        assertEquals(1, savedUser.getId());
+        assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
     }
 }
