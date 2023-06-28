@@ -46,6 +46,10 @@ public class FilmController {
         return ++identifier;
     }
 
+    public void setIdentifier(int identifier){
+        this.identifier = identifier;
+    }
+
     public HashMap<Integer, Film> getFilms() {
         return films;
     }
