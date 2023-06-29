@@ -17,7 +17,7 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        if (users.containsKey(user.getId()) || users.containsValue(user)){
+        if (users.containsKey(user.getId()) || users.containsValue(user)) {
             log.warn(ValidationException.class + ": Пользователь уже существует");
             throw new ValidationException(String.format("Пользователь с id=%s уже существует", user.getId()));
         }
