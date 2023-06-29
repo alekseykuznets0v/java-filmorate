@@ -59,6 +59,7 @@ class UserControllerTest {
         updatedUser.setId(1);
         updatedUser.setName("awesome_bilbo");
     }
+
     @AfterEach
     void cleanStorage() {
         userController.getUsers().clear();
