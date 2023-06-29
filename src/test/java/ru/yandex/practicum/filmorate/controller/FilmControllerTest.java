@@ -43,7 +43,7 @@ class FilmControllerTest {
     @BeforeEach
     void setUp() {
         StringBuilder bigDescription = new StringBuilder();
-        while(bigDescription.length() <= 201){
+        while (bigDescription.length() <= 201) {
             bigDescription.append("a");
         }
         film = new Film("Hobbit", "epic saga", LocalDate.of(2001, 1, 1), 200);
