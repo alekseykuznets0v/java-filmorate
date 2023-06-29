@@ -1,8 +1,7 @@
 package ru.yandex.practicum.filmorate.util.validator;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
-
+import javax.validation.Constraint;
+import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -14,7 +13,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = MaxLengthValidator.class)
 @Documented
-
 public @interface MaxLength {
     String message() default "{MaxLength.invalid}";
 

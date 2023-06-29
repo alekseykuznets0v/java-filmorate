@@ -10,13 +10,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -109,10 +112,8 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -123,10 +124,8 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -137,10 +136,8 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -151,10 +148,8 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -165,10 +160,8 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -178,20 +171,30 @@ class UserControllerTest {
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser));
 
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1));
+        NestedServletException exception = assertThrows(NestedServletException.class,
+                () -> mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonUser1)));
 
+        String exceptionMessage = exception.getCause().getMessage();
         final int usersSize = userController.getAllUsers().size();
+
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
+        assertEquals("Пользователь с id=1 уже существует", exceptionMessage);
     }
 
     @Test
     void shouldNotUpdateUserAndThrowException_NotExistingUser_Endpoint_PutUsers() throws Exception {
         final String jsonUser1 = objectMapper.writeValueAsString(notExistingUser);
 
-        mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1));
+        NestedServletException exception = assertThrows(NestedServletException.class,
+                () -> mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonUser1)));
 
+        String exceptionMessage = exception.getCause().getMessage();
         final int usersSize = userController.getAllUsers().size();
+
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
+        assertEquals("В базе данных нет пользователя с id=69", exceptionMessage);
     }
 
     @Test

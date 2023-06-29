@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.util.validator;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
     @Override

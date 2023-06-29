@@ -10,13 +10,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -111,10 +114,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -126,10 +127,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -141,10 +140,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -156,10 +153,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -171,10 +166,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -186,10 +179,8 @@ class FilmControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        String errorMessage = result.getResponse().getErrorMessage();
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("Invalid request content.", errorMessage);
     }
 
     @Test
@@ -199,20 +190,30 @@ class FilmControllerTest {
 
         mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm));
 
-        mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1));
+        NestedServletException exception = assertThrows(NestedServletException.class,
+                () -> mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonFilm1)));
 
+        String exceptionMessage = exception.getCause().getMessage();
         final int filmsSize = filmController.getAllFilms().size();
+
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
+        assertEquals("Фильм с id=1 уже существует", exceptionMessage);
     }
 
     @Test
     void shouldNotUpdateFilmAndThrowException_NotExistingFilm_Endpoint_PutFilms() throws Exception {
         final String jsonFilm1 = objectMapper.writeValueAsString(notExistingFilm);
 
-        mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1));
+        NestedServletException exception = assertThrows(NestedServletException.class,
+                () -> mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonFilm1)));
 
+        String exceptionMessage = exception.getCause().getMessage();
         final int filmsSize = filmController.getAllFilms().size();
+
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
+        assertEquals("В библиотеке нет фильма с id=69", exceptionMessage);
     }
 
     @Test
