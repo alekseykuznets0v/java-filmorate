@@ -20,7 +20,6 @@ public class Film {
     @NotNull(message = "Дата выхода фильма не должна быть null")
     @MinDate(message = "Дата на может быть ранее 28.12.1895") //собственный валидатор
     private final LocalDate releaseDate;
-    @NotNull(message = "Продолжительность фильма не должна быть null")
     @Positive(message = "Продолжительность фильма не должна быть отрицательной")
     private final int duration;
 }
