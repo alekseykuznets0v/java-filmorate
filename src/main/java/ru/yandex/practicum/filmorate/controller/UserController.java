@@ -44,15 +44,15 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<User> getAllUsers(){
+    public Collection<User> getAllUsers() {
         return users.values();
     }
 
-    private int getIdentifier(){
+    private int getIdentifier() {
         return ++identifier;
     }
 
-    public void setIdentifier(int identifier){
+    public void setIdentifier(int identifier) {
         this.identifier = identifier;
     }
 

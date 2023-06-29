@@ -41,7 +41,7 @@ class UserControllerTest {
     MockMvc mockMvc;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         LocalDate testDate = LocalDate.of(2001, 1, 1);
         user = new User("1@yandex.ru", "bilbo", testDate);
         invalidEmailUser = new User("", "bilbo", testDate);
@@ -60,7 +60,7 @@ class UserControllerTest {
         updatedUser.setName("awesome_bilbo");
     }
     @AfterEach
-    void cleanStorage(){
+    void cleanStorage() {
         userController.getUsers().clear();
         userController.setIdentifier(0);
     }

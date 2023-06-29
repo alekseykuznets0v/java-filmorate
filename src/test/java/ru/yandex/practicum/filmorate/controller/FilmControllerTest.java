@@ -41,7 +41,7 @@ class FilmControllerTest {
     MockMvc mockMvc;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         StringBuilder bigDescription = new StringBuilder();
         while(bigDescription.length() <= 201){
             bigDescription.append("a");
@@ -62,7 +62,7 @@ class FilmControllerTest {
     }
 
     @AfterEach
-    void cleanStorage(){
+    void cleanStorage() {
         filmController.getFilms().clear();
         filmController.setIdentifier(0);
     }

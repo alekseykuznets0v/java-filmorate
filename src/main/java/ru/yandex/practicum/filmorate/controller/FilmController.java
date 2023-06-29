@@ -17,7 +17,7 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        if (films.containsKey(film.getId()) || films.containsValue(film)){
+        if (films.containsKey(film.getId()) || films.containsValue(film)) {
             log.warn(ValidationException.class + ": В базе данных уже есть такой фильм");
             throw new ValidationException(String.format("Фильм с id=%s уже существует", film.getId()));
         }
@@ -38,15 +38,15 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getAllFilms(){
+    public Collection<Film> getAllFilms() {
         return films.values();
     }
 
-    private int getIdentifier(){
+    private int getIdentifier() {
         return ++identifier;
     }
 
-    public void setIdentifier(int identifier){
+    public void setIdentifier(int identifier) {
         this.identifier = identifier;
     }
 
