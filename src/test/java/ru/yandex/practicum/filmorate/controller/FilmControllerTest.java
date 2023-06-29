@@ -201,10 +201,8 @@ class FilmControllerTest {
 
         mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1));
 
-
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
-
     }
 
     @Test
@@ -213,10 +211,8 @@ class FilmControllerTest {
 
         mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1));
 
-
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-
     }
 
     @Test

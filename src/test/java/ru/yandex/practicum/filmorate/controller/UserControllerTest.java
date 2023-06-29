@@ -180,10 +180,8 @@ class UserControllerTest {
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1));
 
-
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
-
     }
 
     @Test
@@ -192,10 +190,8 @@ class UserControllerTest {
 
         mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1));
 
-
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-
     }
 
     @Test
