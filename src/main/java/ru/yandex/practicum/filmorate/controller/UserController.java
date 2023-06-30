@@ -7,57 +7,44 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
-public class UserController {
-    private int identifier = 0;
-    private final HashMap<Integer, User> users = new HashMap<>();
+public class UserController extends Controller<User> {
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        if (users.containsKey(user.getId()) || users.containsValue(user)) {
-            log.warn(ValidationException.class + ": Пользователь уже существует");
-            throw new ValidationException(String.format("Пользователь с id=%s уже существует", user.getId()));
-        }
+    public User add(@Valid @RequestBody User user) throws ValidationException {
+        log.info(String.format("Получен POST запрос с телом %s", user));
 
-        if (user.getName() == null) {
-            log.info("Получен запрос на добавление пользователя с пустым полем 'name'");
-            user.setName(user.getLogin());
+        if (storage.containsKey(user.getId()) || storage.containsValue(user)) {
+            String warning = String.format("Пользователь с id=%s уже существует", user.getId());
+            log.warn(ValidationException.class + ": " + warning);
+            throw new ValidationException(warning);
         }
 
         user.setId(getIdentifier());
-        users.put(user.getId(), user);
+        storage.put(user.getId(), user);
         return user;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        if (users.containsKey(user.getId())) {
-            users.put(user.getId(), user);
+    public User update(@Valid @RequestBody User user) throws ValidationException {
+        log.info(String.format("Получен PUT запрос с телом %s", user));
+
+        if (storage.containsKey(user.getId())) {
+            storage.put(user.getId(), user);
             return user;
         } else {
-            log.warn(ValidationException.class + ": В базе данных нет такого пользователя");
-            throw new ValidationException(String.format("В базе данных нет пользователя с id=%s", user.getId()));
+            String warning = String.format("В базе данных нет пользователя с id=%s", user.getId());
+            log.warn(ValidationException.class + ": " + warning);
+            throw new ValidationException(warning);
         }
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        return users.values();
-    }
-
-    private int getIdentifier() {
-        return ++identifier;
-    }
-
-    public void setIdentifier(int identifier) {
-        this.identifier = identifier;
-    }
-
-    public HashMap<Integer, User> getUsers() {
-        return users;
+        log.info("Получен GET запрос к эндпоинту /users");
+        return getAllValues();
     }
 }

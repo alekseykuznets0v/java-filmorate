@@ -45,26 +45,26 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         LocalDate testDate = LocalDate.of(2001, 1, 1);
-        user = new User("1@yandex.ru", "bilbo", testDate);
-        invalidEmailUser = new User("", "bilbo", testDate);
-        wrongEmailFormatUser = new User(".@.@d", "bilbo", testDate);
-        blankLoginUser = new User("1@yandex.ru", "", testDate);
-        spacesLoginUser = new User("1@yandex.ru", "bilbo baggins", testDate);
-        unbornUser = new User("1@yandex.ru", "bilbo", LocalDate.now().plusDays(1));
-        notExistingUser = new User("69@yandex.ru", "sam", testDate);
-        notExistingUser.setId(69);
-        notExistingUser.setName(notExistingUser.getLogin());
-        alreadyExistingUser = new User("1@yandex.ru", "bilbo", testDate);
-        alreadyExistingUser.setId(1);
-        alreadyExistingUser.setName(alreadyExistingUser.getLogin());
-        updatedUser = new User("1@yandex.ru", "bilbo", testDate);
-        updatedUser.setId(1);
-        updatedUser.setName("awesome_bilbo");
+        final User sampleUser = User.builder()
+                .email("1@yandex.ru")
+                .login("bilbo")
+                .name("")
+                .birthday(testDate)
+                .build();
+        user = sampleUser;
+        invalidEmailUser = sampleUser.toBuilder().email("").build();
+        wrongEmailFormatUser = sampleUser.toBuilder().email(".@.@d").build();
+        blankLoginUser = sampleUser.toBuilder().login("").build();
+        spacesLoginUser = sampleUser.toBuilder().login("bilbo baggins").build();
+        unbornUser = sampleUser.toBuilder().birthday(LocalDate.now().plusDays(1)).build();
+        notExistingUser = sampleUser.toBuilder().id(69).login("sam").build();
+        alreadyExistingUser = sampleUser.toBuilder().id(1).build();
+        updatedUser = sampleUser.toBuilder().id(1).login("awesome_bilbo").build();
     }
 
     @AfterEach
     void cleanStorage() {
-        userController.getUsers().clear();
+        userController.getStorage().clear();
         userController.setIdentifier(0);
     }
 
@@ -77,7 +77,7 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isOk())
-                .andExpect(handler().methodName("addUser"))
+                .andExpect(handler().methodName("add"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJsonUser))
                 .andExpect(jsonPath("$.id").exists())
@@ -86,7 +86,7 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
 
-        final User savedUser = userController.getUsers().get(1);
+        final User savedUser = userController.getStorage().get(1);
         assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
     }
 
@@ -94,7 +94,7 @@ class UserControllerTest {
     void shouldThrowException_EmptyContent_Endpoint_PostUsers() throws Exception {
         MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(""))
                 .andExpect(status().isBadRequest())
-                .andExpect(handler().methodName("addUser"))
+                .andExpect(handler().methodName("add"))
                 .andReturn();
 
         String exception = Objects.requireNonNull(result.getResolvedException()).getClass().toString();
@@ -108,7 +108,7 @@ class UserControllerTest {
     void shouldNotAddUser_EmptyEmail_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(invalidEmailUser);
 
-        MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -120,7 +120,7 @@ class UserControllerTest {
     void shouldNotAddUser_WrongEmail_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(wrongEmailFormatUser);
 
-        MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -132,7 +132,7 @@ class UserControllerTest {
     void shouldNotAddUser_SpacesLogin_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(spacesLoginUser);
 
-        MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -144,7 +144,7 @@ class UserControllerTest {
     void shouldNotAddUser_EmptyLogin_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(blankLoginUser);
 
-        MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -156,7 +156,7 @@ class UserControllerTest {
     void shouldNotAddUser_WrongBirthday_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(unbornUser);
 
-        MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -207,10 +207,10 @@ class UserControllerTest {
         mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(handler().methodName("updateUser"))
+                .andExpect(handler().methodName("update"))
                 .andExpect(content().json(jsonUser1))
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("awesome_bilbo"));
+                .andExpect(jsonPath("$.login").value("awesome_bilbo"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));

@@ -48,24 +48,26 @@ class FilmControllerTest {
         while (bigDescription.length() <= 201) {
             bigDescription.append("a");
         }
-        film = new Film("Hobbit", "epic saga", LocalDate.of(2001, 1, 1), 200);
-        blankNameFilm = new Film("", "epic saga", LocalDate.of(2001, 1, 1), 200);
-        blankDescriptionFilm = new Film("Hobbit", "", LocalDate.of(2001, 1, 1), 200);
-        bigDescriptionFilm = new Film("Hobbit", bigDescription.toString(), LocalDate.of(2001, 1, 1), 200);
-        nullDateFilm = new Film("Hobbit", "epic saga", null, 200);
-        wrongDateFilm = new Film("Hobbit", "epic saga", LocalDate.of(1600, 1, 1), 200);
-        negativeDurationfilm = new Film("Hobbit", "epic saga", LocalDate.of(2001, 1, 1), -200);
-        alreadyExistingFilm = new Film("Hobbit", "epic saga", LocalDate.of(2001, 1, 1), 200);
-        alreadyExistingFilm.setId(1);
-        notExistingFilm = new Film("Hobbit", "epic saga", LocalDate.of(2001, 1, 1), 200);
-        notExistingFilm.setId(69);
-        updatedFilm = new Film(film.getName(), "super epic saga", film.getReleaseDate(), film.getDuration());
-        updatedFilm.setId(1);
+        film = Film.builder()
+                .name("Hobbit")
+                .description("epic saga")
+                .releaseDate(LocalDate.of(2001, 1, 1))
+                .duration(200)
+                .build();
+        blankNameFilm = film.toBuilder().name("").build();
+        blankDescriptionFilm = film.toBuilder().description("").build();
+        bigDescriptionFilm = film.toBuilder().description(bigDescription.toString()).build();
+        nullDateFilm = film.toBuilder().releaseDate(null).build();
+        wrongDateFilm = film.toBuilder().releaseDate(LocalDate.of(1600, 1, 1)).build();
+        negativeDurationfilm = film.toBuilder().duration(-200).build();
+        alreadyExistingFilm = film.toBuilder().id(1).build();
+        notExistingFilm = film.toBuilder().id(69).build();
+        updatedFilm = film.toBuilder().id(1).description("super epic saga").build();
     }
 
     @AfterEach
     void cleanStorage() {
-        filmController.getFilms().clear();
+        filmController.getStorage().clear();
         filmController.setIdentifier(0);
     }
 
@@ -78,7 +80,7 @@ class FilmControllerTest {
         this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isOk())
-                .andExpect(handler().methodName("addFilm"))
+                .andExpect(handler().methodName("add"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJsonFilm))
                 .andExpect(jsonPath("$.id").exists());
@@ -86,7 +88,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
 
-        final Film savedFilm = filmController.getFilms().get(1);
+        final Film savedFilm = filmController.getStorage().get(1);
         assertEquals(1, savedFilm.getId(), String.format("Ожидался id=1, а получен id=%s", savedFilm.getId()));
     }
 
@@ -95,7 +97,7 @@ class FilmControllerTest {
         MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(""))
                 .andExpect(status().isBadRequest())
-                .andExpect(handler().methodName("addFilm"))
+                .andExpect(handler().methodName("add"))
                 .andReturn();
 
         String exception = Objects.requireNonNull(result.getResolvedException()).getClass().toString();
@@ -109,7 +111,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_EmptyName_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(blankNameFilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -122,7 +124,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_EmptyDescription_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(blankDescriptionFilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -135,7 +137,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_BigDescription_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(bigDescriptionFilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -148,7 +150,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_NullDate_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(nullDateFilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -161,7 +163,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_WrongDate_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(wrongDateFilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -174,7 +176,7 @@ class FilmControllerTest {
     void shouldNotAddFilm_NegativeDuration_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(negativeDurationfilm);
 
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -213,7 +215,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
 
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("В библиотеке нет фильма с id=69", exceptionMessage);
+        assertEquals("В базе данных нет фильма с id=69", exceptionMessage);
     }
 
     @Test
@@ -226,7 +228,7 @@ class FilmControllerTest {
         mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(handler().methodName("updateFilm"))
+                .andExpect(handler().methodName("update"))
                 .andExpect(content().json(jsonFilm1))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.description").value("super epic saga"));

@@ -7,51 +7,43 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
-public class FilmController {
-    private int identifier = 0;
-    private final HashMap<Integer, Film> films = new HashMap<>();
+public class FilmController extends Controller<Film> {
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        if (films.containsKey(film.getId()) || films.containsValue(film)) {
-            log.warn(ValidationException.class + ": В базе данных уже есть такой фильм");
-            throw new ValidationException(String.format("Фильм с id=%s уже существует", film.getId()));
+    public Film add(@Valid @RequestBody Film film) throws ValidationException {
+        log.info(String.format("Получен POST запрос с телом %s", film));
+
+        if (storage.containsKey(film.getId()) || storage.containsValue(film)) {
+            String warning = String.format("Фильм с id=%s уже существует", film.getId());
+            log.warn(ValidationException.class + ": " + warning);
+            throw new ValidationException(warning);
         }
         film.setId(getIdentifier());
-        films.put(film.getId(), film);
+        storage.put(film.getId(), film);
         return film;
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
+    public Film update(@Valid @RequestBody Film film) throws ValidationException {
+        log.info(String.format("Получен PUT запрос с телом %s", film));
+
+        if (storage.containsKey(film.getId())) {
+            storage.put(film.getId(), film);
             return film;
         } else {
-            log.warn(ValidationException.class + ": В библиотеке нет такого фильма");
-            throw new ValidationException(String.format("В библиотеке нет фильма с id=%s", film.getId()));
+            String warning = String.format("В базе данных нет фильма с id=%s", film.getId());
+            log.warn(ValidationException.class + ": " + warning);
+            throw new ValidationException(warning);
         }
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
-        return films.values();
-    }
-
-    private int getIdentifier() {
-        return ++identifier;
-    }
-
-    public void setIdentifier(int identifier) {
-        this.identifier = identifier;
-    }
-
-    public HashMap<Integer, Film> getFilms() {
-        return films;
+        log.info("Получен GET запрос к эндпоинту /films");
+        return getAllValues();
     }
 }
