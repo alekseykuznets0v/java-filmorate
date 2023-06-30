@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @ToString
 @Getter
 @Setter
-public class Film extends Entity{
+public class Film extends Entity {
     @NotBlank
     @MaxLength
     private final String description;
