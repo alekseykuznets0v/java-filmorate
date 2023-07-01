@@ -200,7 +200,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
 
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
-        assertEquals("Фильм с id=1 уже существует", exceptionMessage);
+        assertEquals("Такой фильм уже существует, id=1", exceptionMessage);
     }
 
     @Test

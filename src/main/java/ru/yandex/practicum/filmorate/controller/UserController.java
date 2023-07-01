@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -7,24 +8,31 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@Getter
 public class UserController extends Controller<User> {
+    private final Map<String, Integer> emails = new HashMap<>();
 
     @PostMapping
     public User add(@Valid @RequestBody User user) throws ValidationException {
         log.info(String.format("Получен POST запрос с телом %s", user));
+        String email = user.getEmail();
 
-        if (storage.containsKey(user.getId()) || storage.containsValue(user)) {
-            String warning = String.format("Пользователь с id=%s уже существует", user.getId());
+        if (emails.containsKey(email)) {
+            String warning = String.format("Пользователь с email=%s уже существует", email);
             log.warn(ValidationException.class + ": " + warning);
             throw new ValidationException(warning);
         }
 
-        user.setId(getIdentifier());
-        storage.put(user.getId(), user);
+        int id = getIdentifier();
+        user.setId(id);
+        storage.put(id, user);
+        emails.put(user.getEmail(), id);
         return user;
     }
 

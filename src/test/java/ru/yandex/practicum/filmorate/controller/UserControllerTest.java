@@ -38,7 +38,6 @@ class UserControllerTest {
     private UserController userController;
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     MockMvc mockMvc;
 
@@ -66,6 +65,7 @@ class UserControllerTest {
     void cleanStorage() {
         userController.getStorage().clear();
         userController.setIdentifier(0);
+        userController.getEmails().clear();
     }
 
     @Test
@@ -179,7 +179,7 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
 
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
-        assertEquals("Пользователь с id=1 уже существует", exceptionMessage);
+        assertEquals("Пользователь с email=1@yandex.ru уже существует", exceptionMessage);
     }
 
     @Test

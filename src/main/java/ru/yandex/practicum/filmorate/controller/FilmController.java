@@ -17,8 +17,8 @@ public class FilmController extends Controller<Film> {
     public Film add(@Valid @RequestBody Film film) throws ValidationException {
         log.info(String.format("Получен POST запрос с телом %s", film));
 
-        if (storage.containsKey(film.getId()) || storage.containsValue(film)) {
-            String warning = String.format("Фильм с id=%s уже существует", film.getId());
+        if (storage.containsValue(film)) {
+            String warning = String.format("Такой фильм уже существует, id=%s", film.getId());
             log.warn(ValidationException.class + ": " + warning);
             throw new ValidationException(warning);
         }

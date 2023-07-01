@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 
 public @interface MinDate {
-    String message() default "{MinDate.invalid}";
+    String message() default "Дата не может быть ранее 28.12.1895";
 
     Class<?>[] groups() default { };
 

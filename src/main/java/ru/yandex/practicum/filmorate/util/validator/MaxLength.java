@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = MaxLengthValidator.class)
 @Documented
 public @interface MaxLength {
-    String message() default "{MaxLength.invalid}";
+    String message() default "Превышено ограничение максимальной длины текста в 200 символов";
 
     Class<?>[] groups() default { };
 

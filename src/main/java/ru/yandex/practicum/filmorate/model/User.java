@@ -9,7 +9,6 @@ import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 @EqualsAndHashCode(callSuper = true)
-@ToString
 @Getter
 @Setter
 public class User extends Entity {
@@ -19,9 +18,9 @@ public class User extends Entity {
     @NotBlank
     @NoSpaces
     private final String login;
+    private String name;
     @PastOrPresent
     private final LocalDate birthday;
-    private String name;
 
     @Builder(toBuilder = true)
     public User(int id, String name, String email, String login, LocalDate birthday) {
@@ -30,5 +29,16 @@ public class User extends Entity {
         this.email = email;
         this.login = login;
         this.birthday = birthday;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "email='" + email + '\'' +
+                ", login='" + login + '\'' +
+                ", name='" + name + '\'' +
+                ", birthday=" + birthday +
+                ", id=" + id +
+                '}';
     }
 }

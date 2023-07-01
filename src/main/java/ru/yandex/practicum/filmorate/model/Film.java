@@ -11,10 +11,11 @@ import java.time.LocalDate;
 
 
 @EqualsAndHashCode(callSuper = true)
-@ToString
 @Getter
 @Setter
 public class Film extends Entity {
+    @NotBlank
+    private final String name;
     @NotBlank
     @MaxLength
     private final String description;
@@ -24,8 +25,6 @@ public class Film extends Entity {
     @NotNull
     @Positive
     private final int duration;
-    @NotBlank
-    private final String name;
 
     @Builder(toBuilder = true)
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
@@ -34,5 +33,16 @@ public class Film extends Entity {
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+    }
+
+    @Override
+    public String toString() {
+        return "Film{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", duration=" + duration +
+                ", id=" + id +
+                '}';
     }
 }

@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 
 public @interface NoSpaces {
-    String message() default "{NoSpaces.invalid}";
+    String message() default "Логин не может содержать пробелы";
 
     Class<?>[] groups() default { };
 
