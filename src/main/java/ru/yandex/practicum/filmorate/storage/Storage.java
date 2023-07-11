@@ -8,10 +8,6 @@ import java.util.Map;
 public interface Storage<T extends Entity> {
     Collection<T> getAllValues();
 
-    int getIdentifier();
-
-    void setIdentifier(int identifier);
-
     Map<Integer, T> getStorage();
 
     T getById(int id);

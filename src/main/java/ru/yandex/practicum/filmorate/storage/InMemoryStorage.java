@@ -19,16 +19,6 @@ public abstract class InMemoryStorage<T extends Entity> implements Storage<T> {
     }
 
     @Override
-    public int getIdentifier() {
-        return ++identifier;
-    }
-
-    @Override
-    public void setIdentifier(int identifier) {
-        this.identifier = identifier;
-    }
-
-    @Override
     public Map<Integer, T> getStorage() {
         return storage;
     }
@@ -60,5 +50,13 @@ public abstract class InMemoryStorage<T extends Entity> implements Storage<T> {
             log.warn(ValidationException.class + ": " + warning);
             throw new ValidationException(warning);
         }
+    }
+
+    protected int getIdentifier() {
+        return ++identifier;
+    }
+
+    public void setIdentifier(int identifier) {
+        this.identifier = identifier;
     }
 }
