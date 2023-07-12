@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Getter
 @Setter
 public class User extends Entity {
@@ -27,7 +27,7 @@ public class User extends Entity {
 
     @Builder(toBuilder = true)
     public User(Long id, String name, String email, String login, LocalDate birthday, Set<Long> friends) {
-        super(id);
+        setId(id == null ? 0L : id);
         setName(name == null || name.isBlank() ? login : name);
         this.email = email;
         this.login = login;

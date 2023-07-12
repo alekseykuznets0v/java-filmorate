@@ -1,13 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -39,13 +35,15 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
         long id = getIdentifier();
         user.setId(id);
         emails.put(email, id);
-        return storage.put(id, user);
+        storage.put(id, user);
+        return user;
     }
 
     @Override
     public User updateUser(User user) {
         if (storage.containsKey(user.getId())) {
-            return storage.put(user.getId(), user);
+            storage.put(user.getId(), user);
+            return storage.get(user.getId());
         } else {
             String warning = String.format("В базе данных отсутствует пользователь с id=%s", user.getId());
             log.warn(NotFoundException.class + ": " + warning);
@@ -59,7 +57,7 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     }
 
     @Override
-    public Map<Long, User> getUserStorage() {
+    public Map<Long, User> getStorage() {
         return storage;
     }
 
@@ -77,5 +75,10 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     @Override
     public Map<String, Long> getEmails() {
         return emails;
+    }
+
+    @Override
+    public void setIdentifier(long identifier) {
+        this.identifier = identifier;
     }
 }

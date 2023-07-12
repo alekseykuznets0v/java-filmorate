@@ -60,15 +60,15 @@ class FilmControllerTest {
         nullDateFilm = film.toBuilder().releaseDate(null).build();
         wrongDateFilm = film.toBuilder().releaseDate(LocalDate.of(1600, 1, 1)).build();
         negativeDurationfilm = film.toBuilder().duration(-200).build();
-        alreadyExistingFilm = film.toBuilder().id(1).build();
-        notExistingFilm = film.toBuilder().id(69).build();
-        updatedFilm = film.toBuilder().id(1).description("super epic saga").build();
+        alreadyExistingFilm = film.toBuilder().id(1L).build();
+        notExistingFilm = film.toBuilder().id(69L).build();
+        updatedFilm = film.toBuilder().id(1L).description("super epic saga").build();
     }
 
     @AfterEach
     void cleanStorage() {
-        filmController.getStorage().clear();
-        filmController.setIdentifier(0);
+        filmController.getFilmService().getFilmStorage().getStorage().clear();
+        filmController.getFilmService().getFilmStorage().setIdentifier(0);
     }
 
     @Test
@@ -88,7 +88,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
 
-        final Film savedFilm = filmController.getStorage().get(1);
+        final Film savedFilm = filmController.getFilmService().getFilmStorage().getStorage().get(1L);
         assertEquals(1, savedFilm.getId(), String.format("Ожидался id=1, а получен id=%s", savedFilm.getId()));
     }
 
@@ -215,7 +215,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
 
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("В базе данных нет фильма с id=69", exceptionMessage);
+        assertEquals("В базе данных отсутствует фильм с id=69", exceptionMessage);
     }
 
     @Test

@@ -56,16 +56,16 @@ class UserControllerTest {
         blankLoginUser = sampleUser.toBuilder().login("").build();
         spacesLoginUser = sampleUser.toBuilder().login("bilbo baggins").build();
         unbornUser = sampleUser.toBuilder().birthday(LocalDate.now().plusDays(1)).build();
-        notExistingUser = sampleUser.toBuilder().id(69).login("sam").build();
-        alreadyExistingUser = sampleUser.toBuilder().id(1).build();
-        updatedUser = sampleUser.toBuilder().id(1).login("awesome_bilbo").build();
+        notExistingUser = sampleUser.toBuilder().id(69L).login("sam").build();
+        alreadyExistingUser = sampleUser.toBuilder().id(1L).build();
+        updatedUser = sampleUser.toBuilder().id(1L).login("awesome_bilbo").build();
     }
 
     @AfterEach
     void cleanStorage() {
-        userController.getStorage().clear();
-        userController.setIdentifier(0);
-        userController.getEmails().clear();
+        userController.getUserService().getUserStorage().getStorage().clear();
+        userController.getUserService().getUserStorage().getEmails().clear();
+        userController.getUserService().getUserStorage().setIdentifier(0);
     }
 
     @Test
@@ -86,7 +86,7 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
 
-        final User savedUser = userController.getStorage().get(1);
+        final User savedUser = userController.getUserService().getUserStorage().getStorage().get(1L);
         assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
     }
 
@@ -194,7 +194,7 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
 
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("В базе данных нет пользователя с id=69", exceptionMessage);
+        assertEquals("В базе данных отсутствует пользователь с id=69", exceptionMessage);
     }
 
     @Test

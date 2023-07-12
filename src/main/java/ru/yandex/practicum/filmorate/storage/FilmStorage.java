@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
@@ -9,7 +8,7 @@ import java.util.Map;
 public interface FilmStorage {
     Collection<Film> getAllFilms();
 
-    Map<Long, Film> getFilmStorage();
+    Map<Long, Film> getStorage();
 
     Film getFilmById(Long id);
 
@@ -17,4 +16,5 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
+    void setIdentifier(long identifier);
 }

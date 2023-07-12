@@ -10,7 +10,7 @@ import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Getter
 @Setter
 public class Film extends Entity {
@@ -28,7 +28,7 @@ public class Film extends Entity {
 
     @Builder(toBuilder = true)
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
-        super(id);
+        setId(id == null ? 0L : id);
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;

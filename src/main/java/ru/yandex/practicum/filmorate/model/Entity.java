@@ -2,10 +2,8 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
 
-@AllArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode
 public abstract class Entity {
-    protected long id;
+    protected long id = 0;
 }
