@@ -7,9 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,13 +58,28 @@ public class UserService {
     public List<User> getFriends (Long id) {
         Map<Long, User> users = userStorage.getStorage();
         Set<Long> friendIds = userStorage.getStorage().get(id).getFriends();
-
         if (users.containsKey(id)) {
             return users.entrySet().stream()
                     .filter(entry -> friendIds.contains(entry.getKey()))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
         } else {
+            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+        }
+    }
+
+    public List<User> getCommonFriends (Long id1, Long id2) {
+        Map<Long, User> users = userStorage.getStorage();
+
+        if (users.containsKey(id1) & users.containsKey(id2)) {
+            Set<User> userFriends = new HashSet<>(getFriends(id1));
+            Set<User> friendFriends = new HashSet<>(getFriends(id2));
+
+            userFriends.retainAll(friendFriends);
+
+            return new ArrayList<User>(userFriends);
+        } else {
+            long id = users.containsKey(id1) ? id2 : id1;
             throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
         }
     }
