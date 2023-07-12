@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -16,7 +18,12 @@ import java.util.Map;
 @Slf4j
 @Getter
 public class UserController extends Controller<User> {
-    private final Map<String, Integer> emails = new HashMap<>();
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping
     public User add(@Valid @RequestBody User user) throws ValidationException {
@@ -29,7 +36,7 @@ public class UserController extends Controller<User> {
             throw new ValidationException(warning);
         }
 
-        int id = getIdentifier();
+        long id = getIdentifier();
         user.setId(id);
         storage.put(id, user);
         emails.put(user.getEmail(), id);

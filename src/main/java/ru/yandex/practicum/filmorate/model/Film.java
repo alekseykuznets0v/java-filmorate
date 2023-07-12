@@ -27,7 +27,7 @@ public class Film extends Entity {
     private final int duration;
 
     @Builder(toBuilder = true)
-    public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
         super(id);
         this.name = name;
         this.description = description;

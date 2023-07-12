@@ -176,10 +176,10 @@ class UserControllerTest {
                         .content(jsonUser1)));
 
         String exceptionMessage = exception.getCause().getMessage();
-        final int usersSize = userController.getAllUsers().size();
-
-        assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
         assertEquals("Пользователь с email=1@yandex.ru уже существует", exceptionMessage);
+
+        final int usersSize = userController.getAllUsers().size();
+        assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
     }
 
     @Test

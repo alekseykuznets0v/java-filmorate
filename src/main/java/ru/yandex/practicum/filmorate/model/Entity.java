@@ -7,5 +7,5 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public abstract class Entity {
-    protected int id;
+    protected long id;
 }
