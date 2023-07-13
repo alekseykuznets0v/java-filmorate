@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Getter
+@Slf4j
 public class UserService {
     private final UserStorage userStorage;
 
@@ -39,8 +41,9 @@ public class UserService {
                 user.getFriends().remove(friendId);
                 friend.getFriends().remove(id);
             } else {
-                throw new NotFoundException(String.format("У пользователя %s нет в списке друга с id=%s",
-                        user.getName(), friendId));
+                String message = String.format("У пользователя %s нет в списке друга с id=%s", user.getName(), friendId);
+                log.warn(message);
+                throw new NotFoundException(message);
             }
         }
     }
@@ -79,7 +82,9 @@ public class UserService {
         if (users.containsKey(id)) {
             return true;
         } else {
-            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+            String message = String.format("Пользователь с id=%s не найден", id);
+            log.warn(message);
+            throw new NotFoundException(message);
         }
     }
 }

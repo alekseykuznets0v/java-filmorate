@@ -8,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -15,26 +16,27 @@ import java.util.Set;
 @Getter
 @Setter
 public class Film extends Entity {
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустым")
     private final String name;
-    @NotBlank
+    @NotBlank(message = "Описание фильма не может быть пустым")
     @MaxLength
     private final String description;
-    @NotNull
+    @NotNull(message = "Дата выхода фильма не может быть null")
     @MinDate
     private final LocalDate releaseDate;
-    @NotNull
-    @Positive
+    @NotNull(message = "Продолжительность фильма не может быть null")
+    @Positive(message = "Продолжительность фильма не может быть отрицательной")
     private final int duration;
     private Set<Long> likes;
 
     @Builder(toBuilder = true)
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Set<Long> likes) {
         setId(id == null ? 0L : id);
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        setLikes(likes == null ? new HashSet<>() : likes);
     }
 
     public int getLikesNumber(){

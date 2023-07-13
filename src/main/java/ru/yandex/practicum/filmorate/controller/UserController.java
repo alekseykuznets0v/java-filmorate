@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -25,13 +24,13 @@ public class UserController {
     }
 
     @PostMapping
-    public User add(@Valid @RequestBody User user) throws ValidationException {
+    public User add(@Valid @RequestBody User user) {
         log.info(String.format("Получен POST запрос с телом %s", user));
         return userService.getUserStorage().addUser(user);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) throws ValidationException {
+    public User update(@Valid @RequestBody User user) {
         log.info(String.format("Получен PUT запрос с телом %s", user));
         return userService.getUserStorage().updateUser(user);
     }

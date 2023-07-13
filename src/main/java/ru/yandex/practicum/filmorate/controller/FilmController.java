@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -25,13 +24,13 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film add(@Valid @RequestBody Film film) throws ValidationException {
+    public Film add(@Valid @RequestBody Film film) {
         log.info(String.format("Получен POST запрос с телом %s", film));
         return filmService.getFilmStorage().addFilm(film);
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) throws ValidationException {
+    public Film update(@Valid @RequestBody Film film) {
         log.info(String.format("Получен PUT запрос с телом %s", film));
         return filmService.getFilmStorage().updateFilm(film);
     }
@@ -61,7 +60,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(Long id, Long userId) {
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Получен DELETE запрос к эндпоинту /films/id/like/userId");
         filmService.deleteLike(userId, id);
     }

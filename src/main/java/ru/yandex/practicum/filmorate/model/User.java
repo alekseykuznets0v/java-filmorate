@@ -14,14 +14,14 @@ import java.util.Set;
 @Getter
 @Setter
 public class User extends Entity {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email не может быть пустым")
+    @Email(message = "Некорректный формат email")
     private final String email;
-    @NotBlank
+    @NotBlank(message = "Логин не может быть пустым")
     @NoSpaces
     private final String login;
     private String name;
-    @PastOrPresent
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private final LocalDate birthday;
     private Set<Long> friends;
 

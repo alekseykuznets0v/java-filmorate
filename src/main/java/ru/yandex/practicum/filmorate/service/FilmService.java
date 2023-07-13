@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -14,6 +15,7 @@ import java.util.*;
 
 @Service
 @Getter
+@Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
@@ -49,10 +51,15 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms (Integer count) {
-        if (count < 1) throw new ValidationException("Параметр запроса не может быть меньше 1");
+        if (count < 1) {
+            String message = "Параметр запроса не может быть меньше 1";
+            log.warn(message);
+            throw new ValidationException(message);
+        }
 
-        TreeSet<Film> filmsChart = new TreeSet<>(filmStorage.getFilmsChart());
+        TreeSet<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).thenComparing(Film::getId));
         List<Film> mostPopularFilms = new ArrayList<>();
+        filmsChart.addAll(filmStorage.getFilmsChart());
 
         while(mostPopularFilms.size() < count && !filmsChart.isEmpty()) {
             mostPopularFilms.add(filmsChart.pollLast());
@@ -67,7 +74,9 @@ public class FilmService {
         if (users.containsKey(id)) {
             return true;
         } else {
-            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+            String message = String.format("Пользователь с id=%s не найден", id);
+            log.warn(message);
+            throw new NotFoundException(message);
         }
     }
 
@@ -77,7 +86,9 @@ public class FilmService {
         if (films.containsKey(id)) {
             return true;
         } else {
-            throw new NotFoundException(String.format("Фильм с id=%s не найден", id));
+            String message = String.format("Фильм с id=%s не найден", id);
+            log.warn(message);
+            throw new NotFoundException(message);
         }
     }
 }
