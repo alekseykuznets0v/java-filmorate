@@ -21,24 +21,17 @@ public class UserService {
     }
 
     public void addFriend (Long id1, Long id2){
-        Map<Long, User> users = userStorage.getStorage();
-
-        if (users.containsKey(id1) & users.containsKey(id2)) {
+        if (isUserIdExist(id1) && isUserIdExist(id2)) {
             User user = userStorage.getStorage().get(id1);
             User friend = userStorage.getStorage().get(id2);
 
             user.getFriends().add(id2);
             friend.getFriends().add(id1);
-        } else {
-            long id = users.containsKey(id1) ? id2 : id1;
-            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
         }
     }
 
-    public void removeFriend (Long id1, Long id2){
-        Map<Long, User> users = userStorage.getStorage();
-
-        if (users.containsKey(id1) & users.containsKey(id2)) {
+    public void deleteFriend (Long id1, Long id2){
+        if (isUserIdExist(id1) && isUserIdExist(id2)) {
             User user = userStorage.getUserById(id1);
             User friend = userStorage.getUserById(id2);
 
@@ -49,37 +42,43 @@ public class UserService {
                 throw new NotFoundException(String.format("У пользователя %s нет в списке друга с id=%s",
                         user.getName(), id2));
             }
-        } else {
-            long id = users.containsKey(id1) ? id2 : id1;
-            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
         }
     }
 
     public List<User> getFriends (Long id) {
         Map<Long, User> users = userStorage.getStorage();
-        Set<Long> friendIds = userStorage.getStorage().get(id).getFriends();
-        if (users.containsKey(id)) {
-            return users.entrySet().stream()
+        List<User> friends = new ArrayList<>();
+
+        if (isUserIdExist(id)) {
+            Set<Long> friendIds = users.get(id).getFriends();
+
+            friends.addAll(users.entrySet().stream()
                     .filter(entry -> friendIds.contains(entry.getKey()))
                     .map(Map.Entry::getValue)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+                    .collect(Collectors.toList()));
         }
+
+        return friends;
     }
 
     public List<User> getCommonFriends (Long id1, Long id2) {
+        Set <User> commonFriends = new HashSet<>();
+
+        if (isUserIdExist(id1) && isUserIdExist(id2)) {
+            final Set<User> friendFriends = new HashSet<>(getFriends(id2));
+            commonFriends.addAll(getFriends(id1));
+            commonFriends.retainAll(friendFriends);
+        }
+
+        return new ArrayList<>(commonFriends);
+    }
+
+    private boolean isUserIdExist (Long id) {
         Map<Long, User> users = userStorage.getStorage();
 
-        if (users.containsKey(id1) & users.containsKey(id2)) {
-            Set<User> userFriends = new HashSet<>(getFriends(id1));
-            Set<User> friendFriends = new HashSet<>(getFriends(id2));
-
-            userFriends.retainAll(friendFriends);
-
-            return new ArrayList<User>(userFriends);
+        if (users.containsKey(id)) {
+            return true;
         } else {
-            long id = users.containsKey(id1) ? id2 : id1;
             throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
         }
     }

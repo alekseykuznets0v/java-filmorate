@@ -8,13 +8,16 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryStorage;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.OptionalLong;
+import java.util.*;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmStorage {
+    private final Set<Film> filmsChart;
+
+    public InMemoryFilmStorage() {
+        this.filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).thenComparing(Film::getId));
+    }
 
     @Override
     public Collection<Film> getAllFilms() {
@@ -48,13 +51,17 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
         long id = getIdentifier();
         film.setId(id);
         storage.put(id, film);
+        filmsChart.add(film);
         return film;
     }
 
     @Override
     public Film updateFilm(Film film) {
         if (storage.containsKey(film.getId())) {
-            storage.put(film.getId(), film);
+            Film oldFilm = storage.put(film.getId(), film);
+
+            filmsChart.remove(oldFilm);
+            filmsChart.add(film);
             return storage.get(film.getId());
         } else {
             String warning = String.format("В базе данных отсутствует фильм с id=%s", film.getId());
@@ -66,5 +73,10 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
     @Override
     public void setIdentifier(long identifier) {
         this.identifier = identifier;
+    }
+
+    @Override
+    public Set<Film> getFilmsChart() {
+        return filmsChart;
     }
 }

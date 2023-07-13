@@ -8,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
+import java.util.Set;
 
 
 @EqualsAndHashCode(callSuper = false)
@@ -25,6 +26,7 @@ public class Film extends Entity {
     @NotNull
     @Positive
     private final int duration;
+    private Set<Long> likes;
 
     @Builder(toBuilder = true)
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
@@ -35,6 +37,10 @@ public class Film extends Entity {
         this.duration = duration;
     }
 
+    public int getLikesNumber(){
+        return likes.size();
+    }
+
     @Override
     public String toString() {
         return "Film{" +
@@ -43,6 +49,7 @@ public class Film extends Entity {
                 ", releaseDate=" + releaseDate +
                 ", duration=" + duration +
                 ", id=" + id +
+                ", likes=" + likes.size() +
                 '}';
     }
 }

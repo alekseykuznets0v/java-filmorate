@@ -43,6 +43,7 @@ public class User extends Entity {
                 ", name='" + name + '\'' +
                 ", birthday=" + birthday +
                 ", id=" + id +
+                ", friends=" + friends.size() +
                 '}';
     }
 }
