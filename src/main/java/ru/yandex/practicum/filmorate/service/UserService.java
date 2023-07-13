@@ -20,27 +20,27 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public void addFriend (Long id1, Long id2){
-        if (isUserIdExist(id1) && isUserIdExist(id2)) {
-            User user = userStorage.getStorage().get(id1);
-            User friend = userStorage.getStorage().get(id2);
+    public void addFriend (Long id, Long friendId){
+        if (isUserIdExist(id) && isUserIdExist(friendId)) {
+            User user = userStorage.getStorage().get(id);
+            User friend = userStorage.getStorage().get(friendId);
 
-            user.getFriends().add(id2);
-            friend.getFriends().add(id1);
+            user.getFriends().add(friendId);
+            friend.getFriends().add(id);
         }
     }
 
-    public void deleteFriend (Long id1, Long id2){
-        if (isUserIdExist(id1) && isUserIdExist(id2)) {
-            User user = userStorage.getUserById(id1);
-            User friend = userStorage.getUserById(id2);
+    public void deleteFriend (Long id, Long friendId){
+        if (isUserIdExist(id) && isUserIdExist(friendId)) {
+            User user = userStorage.getUserById(id);
+            User friend = userStorage.getUserById(friendId);
 
-            if(user.getFriends().contains(id2)) {
-                user.getFriends().remove(id2);
-                friend.getFriends().remove(id1);
+            if(user.getFriends().contains(friendId)) {
+                user.getFriends().remove(friendId);
+                friend.getFriends().remove(id);
             } else {
                 throw new NotFoundException(String.format("У пользователя %s нет в списке друга с id=%s",
-                        user.getName(), id2));
+                        user.getName(), friendId));
             }
         }
     }
@@ -61,12 +61,12 @@ public class UserService {
         return friends;
     }
 
-    public List<User> getCommonFriends (Long id1, Long id2) {
+    public List<User> getCommonFriends (Long id, Long friendId) {
         Set <User> commonFriends = new HashSet<>();
 
-        if (isUserIdExist(id1) && isUserIdExist(id2)) {
-            final Set<User> friendFriends = new HashSet<>(getFriends(id2));
-            commonFriends.addAll(getFriends(id1));
+        if (isUserIdExist(id) && isUserIdExist(friendId)) {
+            final Set<User> friendFriends = new HashSet<>(getFriends(friendId));
+            commonFriends.addAll(getFriends(id));
             commonFriends.retainAll(friendFriends);
         }
 

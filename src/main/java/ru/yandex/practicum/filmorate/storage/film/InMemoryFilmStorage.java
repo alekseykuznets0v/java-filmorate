@@ -48,6 +48,7 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
             log.warn(AlreadyExistsException.class + ": " + warning);
             throw new AlreadyExistsException(warning);
         }
+
         long id = getIdentifier();
         film.setId(id);
         storage.put(id, film);

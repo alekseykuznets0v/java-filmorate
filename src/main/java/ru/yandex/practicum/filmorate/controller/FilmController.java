@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
@@ -35,10 +36,34 @@ public class FilmController {
         return filmService.getFilmStorage().updateFilm(film);
     }
 
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен PUT запрос к эндпоинту /films/id/like/userId");
+        filmService.addLike(userId, id);
+    }
+
     @GetMapping
     public Collection<Film> getAllFilms() {
         log.info("Получен GET запрос к эндпоинту /films");
         return filmService.getFilmStorage().getAllFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Long id){
+        log.info("Получен GET запрос к эндпоинту /films/id");
+        return filmService.getFilmStorage().getFilmById(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(name = "count", defaultValue = "10") Integer count) {
+        log.info("Получен GET запрос к эндпоинту /films/popular?count=count");
+        return filmService.getMostPopularFilms(count);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(Long id, Long userId) {
+        log.info("Получен DELETE запрос к эндпоинту /films/id/like/userId");
+        filmService.deleteLike(userId, id);
     }
 
 }
