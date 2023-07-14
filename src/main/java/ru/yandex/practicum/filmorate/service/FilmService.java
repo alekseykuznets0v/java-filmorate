@@ -50,7 +50,7 @@ public class FilmService {
         }
     }
 
-    public List<Film> getMostPopularFilms (Integer count) {
+    public List<Film> getMostPopularFilms(Integer count) {
         if (count < 1) {
             String message = "Параметр запроса не может быть меньше 1";
             log.warn(message);
@@ -68,7 +68,7 @@ public class FilmService {
         return mostPopularFilms;
     }
 
-    private boolean isUserIdExist (Long id) {
+    private boolean isUserIdExist(Long id) {
         Map<Long, User> users = userStorage.getStorage();
 
         if (users.containsKey(id)) {
@@ -80,7 +80,7 @@ public class FilmService {
         }
     }
 
-    private boolean isFilmIdExist (Long id) {
+    private boolean isFilmIdExist(Long id) {
         Map<Long, Film> films = filmStorage.getStorage();
 
         if (films.containsKey(id)) {

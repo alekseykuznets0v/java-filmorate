@@ -22,7 +22,7 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public void addFriend (Long id, Long friendId){
+    public void addFriend(Long id, Long friendId) {
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
             User user = userStorage.getStorage().get(id);
             User friend = userStorage.getStorage().get(friendId);
@@ -32,7 +32,7 @@ public class UserService {
         }
     }
 
-    public void deleteFriend (Long id, Long friendId){
+    public void deleteFriend(Long id, Long friendId) {
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
             User user = userStorage.getUserById(id);
             User friend = userStorage.getUserById(friendId);
@@ -48,7 +48,7 @@ public class UserService {
         }
     }
 
-    public List<User> getFriends (Long id) {
+    public List<User> getFriends(Long id) {
         Map<Long, User> users = userStorage.getStorage();
         List<User> friends = new ArrayList<>();
 
@@ -64,7 +64,7 @@ public class UserService {
         return friends;
     }
 
-    public List<User> getCommonFriends (Long id, Long friendId) {
+    public List<User> getCommonFriends(Long id, Long friendId) {
         Set <User> commonFriends = new HashSet<>();
 
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
@@ -76,7 +76,7 @@ public class UserService {
         return new ArrayList<>(commonFriends);
     }
 
-    private boolean isUserIdExist (Long id) {
+    private boolean isUserIdExist(Long id) {
         Map<Long, User> users = userStorage.getStorage();
 
         if (users.containsKey(id)) {
