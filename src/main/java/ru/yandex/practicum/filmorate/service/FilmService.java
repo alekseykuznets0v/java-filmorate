@@ -61,7 +61,7 @@ public class FilmService {
         List<Film> mostPopularFilms = new ArrayList<>();
         filmsChart.addAll(filmStorage.getFilmsChart());
 
-        while(mostPopularFilms.size() < count && !filmsChart.isEmpty()) {
+        while (mostPopularFilms.size() < count && !filmsChart.isEmpty()) {
             mostPopularFilms.add(filmsChart.pollLast());
         }
 
