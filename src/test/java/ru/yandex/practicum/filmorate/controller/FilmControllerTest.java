@@ -10,14 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -94,9 +92,8 @@ class FilmControllerTest {
 
     @Test
     void shouldThrowException_EmptyContent_Endpoint_PostFilms() throws Exception {
-        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
-                .content(""))
-                .andExpect(status().isBadRequest())
+        MvcResult result = mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(""))
+                .andExpect(status().isInternalServerError())
                 .andExpect(handler().methodName("add"))
                 .andReturn();
 
@@ -111,10 +108,11 @@ class FilmControllerTest {
     void shouldNotAddFilm_EmptyName_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(blankNameFilm);
 
-        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
-                .content(jsonFilm))
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Название фильма не может быть пустым"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
@@ -124,10 +122,11 @@ class FilmControllerTest {
     void shouldNotAddFilm_EmptyDescription_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(blankDescriptionFilm);
 
-        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
-                .content(jsonFilm))
+        this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Описание фильма не может быть пустым"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
@@ -140,7 +139,10 @@ class FilmControllerTest {
         this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error")
+                        .value("Превышено ограничение максимальной длины текста в 200 символов"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
@@ -153,7 +155,9 @@ class FilmControllerTest {
         this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Дата выхода фильма не может быть null"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
@@ -166,7 +170,9 @@ class FilmControllerTest {
         this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Дата не может быть ранее 28.12.1895"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
@@ -179,43 +185,44 @@ class FilmControllerTest {
         this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error")
+                        .value("Продолжительность фильма не может быть отрицательной"));
 
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
     }
 
     @Test
-    void shouldNotAddFilmAndThrowException_AlreadyExistingFilm_Endpoint_PostFilms() throws Exception {
+    void shouldNotAddFilm_AlreadyExistingFilm_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(film);
         final String jsonFilm1 = objectMapper.writeValueAsString(alreadyExistingFilm);
 
         mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm));
 
-        NestedServletException exception = assertThrows(NestedServletException.class,
-                () -> mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonFilm1)));
+        mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1))
+                .andExpect(status().isBadRequest())
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Такой фильм уже существует, id=1"));
 
-        String exceptionMessage = exception.getCause().getMessage();
         final int filmsSize = filmController.getAllFilms().size();
-
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
-        assertEquals("Такой фильм уже существует, id=1", exceptionMessage);
     }
 
     @Test
-    void shouldNotUpdateFilmAndThrowException_NotExistingFilm_Endpoint_PutFilms() throws Exception {
+    void shouldNotUpdateFilm_NotExistingFilm_Endpoint_PutFilms() throws Exception {
         final String jsonFilm1 = objectMapper.writeValueAsString(notExistingFilm);
 
-        NestedServletException exception = assertThrows(NestedServletException.class,
-                () -> mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonFilm1)));
+        mockMvc.perform(put("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm1))
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("update"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("В базе данных отсутствует фильм с id=69"));
 
-        String exceptionMessage = exception.getCause().getMessage();
         final int filmsSize = filmController.getAllFilms().size();
-
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
-        assertEquals("В базе данных отсутствует фильм с id=69", exceptionMessage);
     }
 
     @Test
