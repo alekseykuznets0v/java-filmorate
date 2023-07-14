@@ -36,7 +36,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMethodArgumentNotValidException (final MethodArgumentNotValidException e) {
+    public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         String message = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
         log.warn(message);
         return new ErrorResponse(message);
@@ -44,14 +44,14 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleRuntimeException (final RuntimeException e) {
+    public ErrorResponse handleRuntimeException(final RuntimeException e) {
         log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException (final Exception e) {
+    public ErrorResponse handleException(final Exception e) {
         log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
