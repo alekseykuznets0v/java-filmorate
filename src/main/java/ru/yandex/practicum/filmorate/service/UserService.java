@@ -37,7 +37,7 @@ public class UserService {
             User user = userStorage.getUserById(id);
             User friend = userStorage.getUserById(friendId);
 
-            if(user.getFriends().contains(friendId)) {
+            if (user.getFriends().contains(friendId)) {
                 user.getFriends().remove(friendId);
                 friend.getFriends().remove(id);
             } else {
@@ -65,7 +65,7 @@ public class UserService {
     }
 
     public List<User> getCommonFriends(Long id, Long friendId) {
-        Set <User> commonFriends = new HashSet<>();
+        Set<User> commonFriends = new HashSet<>();
 
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
             final Set<User> friendFriends = new HashSet<>(getFriends(friendId));
