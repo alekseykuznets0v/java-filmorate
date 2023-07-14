@@ -39,7 +39,7 @@ public class Film extends Entity {
         setLikes(likes == null ? new HashSet<>() : likes);
     }
 
-    public int getLikesNumber(){
+    public int getLikesNumber() {
         return likes.size();
     }
 
