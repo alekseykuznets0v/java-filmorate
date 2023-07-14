@@ -48,25 +48,25 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById (@PathVariable Long id) {
+    public User getUserById(@PathVariable Long id) {
         log.info("Получен GET запрос к эндпоинту /users/id");
         return userService.getUserStorage().getUserById(id);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends (@PathVariable Long id) {
+    public List<User> getFriends(@PathVariable Long id) {
         log.info("Получен GET запрос к эндпоинту /users/id/friends");
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends (@PathVariable Long id, @PathVariable Long otherId) {
+    public List<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
         log.info("Получен GET запрос к эндпоинту /users/id/friends/common/otherId");
         return userService.getCommonFriends(id, otherId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend (@PathVariable Long id, @PathVariable Long friendId) {
+    public void deleteFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Получен DELETE запрос к эндпоинту /users/id/friends/friendId");
         userService.deleteFriend(id, friendId);
     }
