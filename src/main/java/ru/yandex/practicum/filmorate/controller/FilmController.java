@@ -48,7 +48,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable Long id){
+    public Film getFilmById(@PathVariable Long id) {
         log.info("Получен GET запрос к эндпоинту /films/id");
         return filmService.getFilmStorage().getFilmById(id);
     }
