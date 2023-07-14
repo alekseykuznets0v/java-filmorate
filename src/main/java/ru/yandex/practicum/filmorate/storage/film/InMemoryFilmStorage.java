@@ -42,7 +42,7 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
 
     @Override
     public Film addFilm(Film film) {
-        if (storage.containsValue(film)){
+        if (storage.containsValue(film)) {
             OptionalLong id = storage.entrySet().stream().filter(entry -> film.equals(entry.getValue())).mapToLong(Map.Entry::getKey).findFirst();
             String warning = String.format("Такой фильм уже существует, id=%s", id.isPresent() ? id.getAsLong() : null);
             log.warn(AlreadyExistsException.class + ": " + warning);
