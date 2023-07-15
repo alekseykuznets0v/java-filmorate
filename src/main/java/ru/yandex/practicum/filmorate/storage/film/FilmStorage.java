@@ -1,15 +1,11 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 public interface FilmStorage {
     Collection<Film> getAllFilms();
-
-    Map<Long, Film> getStorage();
 
     Film getFilmById(Long id);
 
@@ -19,5 +15,7 @@ public interface FilmStorage {
 
     void setIdentifier(long identifier);
 
-    Set<Film> getFilmsChart();
+    void deleteAllFilms();
+
+    boolean isFilmIdExist(Long id);
 }

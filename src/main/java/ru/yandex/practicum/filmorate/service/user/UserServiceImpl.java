@@ -1,41 +1,40 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.user;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
-@Getter
 @Slf4j
-public class UserService {
+public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserServiceImpl(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
+    @Override
     public void addFriend(Long id, Long friendId) {
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            User user = userStorage.getStorage().get(id);
-            User friend = userStorage.getStorage().get(friendId);
+            User user = getUserById(id);
+            User friend = getUserById(friendId);
 
             user.getFriends().add(friendId);
             friend.getFriends().add(id);
         }
     }
 
+    @Override
     public void deleteFriend(Long id, Long friendId) {
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            User user = userStorage.getUserById(id);
-            User friend = userStorage.getUserById(friendId);
+            User user = getUserById(id);
+            User friend = getUserById(friendId);
 
             if (user.getFriends().contains(friendId)) {
                 user.getFriends().remove(friendId);
@@ -48,43 +47,55 @@ public class UserService {
         }
     }
 
+    @Override
     public List<User> getFriends(Long id) {
-        Map<Long, User> users = userStorage.getStorage();
-        List<User> friends = new ArrayList<>();
-
-        if (isUserIdExist(id)) {
-            Set<Long> friendIds = users.get(id).getFriends();
-
-            friends.addAll(users.entrySet().stream()
-                    .filter(entry -> friendIds.contains(entry.getKey()))
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList()));
-        }
-
-        return friends;
+        return userStorage.getFriends(id);
     }
 
+    @Override
     public List<User> getCommonFriends(Long id, Long friendId) {
-        Set<User> commonFriends = new HashSet<>();
+        List<User> commonFriends = new ArrayList<>();
 
         if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            final Set<User> friendFriends = new HashSet<>(getFriends(friendId));
+            final List<User> friendFriends = new ArrayList<>(getFriends(friendId));
             commonFriends.addAll(getFriends(id));
             commonFriends.retainAll(friendFriends);
         }
 
-        return new ArrayList<>(commonFriends);
+        return commonFriends;
+    }
+
+    @Override
+    public Collection<User> getAllUsers() {
+        return userStorage.getAllUsers();
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return userStorage.getUserById(id);
+    }
+
+    @Override
+    public User addUser(User user) {
+        return userStorage.addUser(user);
+    }
+
+    @Override
+    public User updateUser(User user) {
+        return userStorage.updateUser(user);
+    }
+
+    @Override
+    public void deleteAllUsers() {
+        userStorage.deleteAllUsers();
+    }
+
+    @Override
+    public void resetIdentifier() {
+        userStorage.setIdentifier(0);
     }
 
     private boolean isUserIdExist(Long id) {
-        Map<Long, User> users = userStorage.getStorage();
-
-        if (users.containsKey(id)) {
-            return true;
-        } else {
-            String message = String.format("Пользователь с id=%s не найден", id);
-            log.warn(message);
-            throw new NotFoundException(message);
-        }
+        return userStorage.isUserIdExist(id);
     }
 }

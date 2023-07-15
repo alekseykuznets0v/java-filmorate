@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryStorage;
 
 import java.util.*;
@@ -13,11 +12,6 @@ import java.util.*;
 @Component
 @Slf4j
 public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmStorage {
-    private final Set<Film> filmsChart;
-
-    public InMemoryFilmStorage() {
-        this.filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).thenComparing(Film::getId));
-    }
 
     @Override
     public Collection<Film> getAllFilms() {
@@ -25,19 +19,9 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
     }
 
     @Override
-    public Map<Long, Film> getStorage() {
-        return storage;
-    }
-
-    @Override
     public Film getFilmById(Long id) {
-        if (storage.containsKey(id)) {
-            return storage.get(id);
-        } else {
-            String warning = String.format("В базе данных отсутствует фильм с id=%s", id);
-            log.warn(NotFoundException.class + ": " + warning);
-            throw new NotFoundException(warning);
-        }
+        isFilmIdExist(id);
+        return storage.get(id);
     }
 
     @Override
@@ -52,23 +36,16 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
         long id = getIdentifier();
         film.setId(id);
         storage.put(id, film);
-        filmsChart.add(film);
         return film;
     }
 
     @Override
     public Film updateFilm(Film film) {
-        if (storage.containsKey(film.getId())) {
-            Film oldFilm = storage.put(film.getId(), film);
+        long id = film.getId();
 
-            filmsChart.remove(oldFilm);
-            filmsChart.add(film);
-            return storage.get(film.getId());
-        } else {
-            String warning = String.format("В базе данных отсутствует фильм с id=%s", film.getId());
-            log.warn(NotFoundException.class + ": " + warning);
-            throw new NotFoundException(warning);
-        }
+        isFilmIdExist(id);
+        storage.put(id, film);
+        return film;
     }
 
     @Override
@@ -77,7 +54,18 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
     }
 
     @Override
-    public Set<Film> getFilmsChart() {
-        return filmsChart;
+    public void deleteAllFilms() {
+        storage.clear();
+    }
+
+    @Override
+    public boolean isFilmIdExist(Long id) {
+        if (storage.containsKey(id)) {
+            return true;
+        } else {
+            String message = String.format("В базе данных отсутствует фильм с id=%s", id);
+            log.warn(message);
+            throw new NotFoundException(message);
+        }
     }
 }

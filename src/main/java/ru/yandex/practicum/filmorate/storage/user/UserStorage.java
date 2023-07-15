@@ -1,14 +1,12 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 public interface UserStorage {
     Collection<User> getAllUsers();
-
-    Map<Long, User> getStorage();
 
     User getUserById(Long id);
 
@@ -16,7 +14,11 @@ public interface UserStorage {
 
     User updateUser(User user);
 
-    Map<String, Long> getEmails();
-
     void setIdentifier(long identifier);
+
+    boolean isUserIdExist(Long id);
+
+    List<User> getFriends(Long id);
+
+    void deleteAllUsers();
 }

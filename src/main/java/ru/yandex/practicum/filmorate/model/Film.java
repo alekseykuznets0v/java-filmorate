@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import ru.yandex.practicum.filmorate.util.validator.MaxLength;
 import ru.yandex.practicum.filmorate.util.validator.MinDate;
@@ -27,7 +28,11 @@ public class Film extends Entity {
     @NotNull(message = "Продолжительность фильма не может быть null")
     @Positive(message = "Продолжительность фильма не может быть отрицательной")
     private final int duration;
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
     private Set<Long> likes;
+    @EqualsAndHashCode.Exclude
+    private int likesNumber;
 
     @Builder(toBuilder = true)
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Set<Long> likes) {
@@ -37,10 +42,17 @@ public class Film extends Entity {
         this.releaseDate = releaseDate;
         this.duration = duration;
         setLikes(likes == null ? new HashSet<>() : likes);
+        this.likesNumber = this.likes.size();
     }
 
-    public int getLikesNumber() {
-        return likes.size();
+    public void addLike() {
+        likesNumber++;
+    }
+
+    public void removeLike() {
+        if (likesNumber > 0) {
+            likesNumber--;
+        }
     }
 
     @Override
@@ -51,7 +63,7 @@ public class Film extends Entity {
                 ", releaseDate=" + releaseDate +
                 ", duration=" + duration +
                 ", id=" + id +
-                ", likes=" + likes.size() +
+                ", likesNumber=" + likesNumber +
                 '}';
     }
 }

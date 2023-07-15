@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import ru.yandex.practicum.filmorate.util.validator.NoSpaces;
 
@@ -23,6 +24,8 @@ public class User extends Entity {
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private final LocalDate birthday;
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
     private Set<Long> friends;
 
     @Builder(toBuilder = true)

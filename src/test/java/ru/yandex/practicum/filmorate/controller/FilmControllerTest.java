@@ -65,8 +65,8 @@ class FilmControllerTest {
 
     @AfterEach
     void cleanStorage() {
-        filmController.getFilmService().getFilmStorage().getStorage().clear();
-        filmController.getFilmService().getFilmStorage().setIdentifier(0);
+        filmController.getFilmServiceImpl().deleteAllFilms();
+        filmController.getFilmServiceImpl().resetIdentifier();
     }
 
     @Test
@@ -86,7 +86,7 @@ class FilmControllerTest {
         final int filmsSize = filmController.getAllFilms().size();
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
 
-        final Film savedFilm = filmController.getFilmService().getFilmStorage().getStorage().get(1L);
+        final Film savedFilm = filmController.getFilmServiceImpl().getFilmById(1L);
         assertEquals(1, savedFilm.getId(), String.format("Ожидался id=1, а получен id=%s", savedFilm.getId()));
     }
 

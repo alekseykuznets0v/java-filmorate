@@ -6,27 +6,19 @@ import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class InMemoryUserStorage extends InMemoryStorage<User> implements UserStorage {
-    private final Map<String, Long> emails;
-
-    public InMemoryUserStorage() {
-        super();
-        this.emails = new HashMap<>();
-    }
 
     @Override
     public User addUser(User user) {
         String email = user.getEmail();
 
-        if (emails.containsKey(email)) {
+        if (isEmailExist(email)) {
             String warning = String.format("Пользователь с email=%s уже существует", email);
             log.warn(AlreadyExistsException.class + ": " + warning);
             throw new AlreadyExistsException(warning);
@@ -34,7 +26,6 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
 
         long id = getIdentifier();
         user.setId(id);
-        emails.put(email, id);
         storage.put(id, user);
         return user;
     }
@@ -57,11 +48,6 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     }
 
     @Override
-    public Map<Long, User> getStorage() {
-        return storage;
-    }
-
-    @Override
     public User getUserById(Long id) {
         if (storage.containsKey(id)) {
             return storage.get(id);
@@ -73,12 +59,46 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     }
 
     @Override
-    public Map<String, Long> getEmails() {
-        return emails;
+    public void setIdentifier(long identifier) {
+        this.identifier = identifier;
     }
 
     @Override
-    public void setIdentifier(long identifier) {
-        this.identifier = identifier;
+    public boolean isUserIdExist(Long id) {
+        if (storage.containsKey(id)) {
+            return true;
+        } else {
+            String message = String.format("Пользователь с id=%s не найден", id);
+            log.warn(message);
+            throw new NotFoundException(message);
+        }
+    }
+
+    @Override
+    public List<User> getFriends(Long id) {
+        List<User> friends = new ArrayList<>();
+
+        if (isUserIdExist(id)) {
+            Set<Long> friendIds = getUserById(id).getFriends();
+
+            friends.addAll(storage.entrySet()
+                    .stream()
+                    .filter(entry -> friendIds.contains(entry.getKey()))
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toList()));
+        }
+
+        return friends;
+    }
+
+    @Override
+    public void deleteAllUsers() {
+        storage.clear();
+    }
+
+    private boolean isEmailExist(String email) {
+        return getAllUsers()
+                .stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
     }
 }

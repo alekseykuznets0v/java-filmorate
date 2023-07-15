@@ -61,9 +61,8 @@ class UserControllerTest {
 
     @AfterEach
     void cleanStorage() {
-        userController.getUserService().getUserStorage().getStorage().clear();
-        userController.getUserService().getUserStorage().getEmails().clear();
-        userController.getUserService().getUserStorage().setIdentifier(0);
+        userController.getUserServiceImpl().deleteAllUsers();
+        userController.getUserServiceImpl().resetIdentifier();
     }
 
     @Test
@@ -84,7 +83,7 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
 
-        final User savedUser = userController.getUserService().getUserStorage().getStorage().get(1L);
+        final User savedUser = userController.getUserServiceImpl().getUserById(1L);
         assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
     }
 
