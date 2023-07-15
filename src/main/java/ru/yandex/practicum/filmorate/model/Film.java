@@ -46,12 +46,12 @@ public class Film extends Entity {
     }
 
     public void addLike() {
-        likesNumber++;
+        ++likesNumber;
     }
 
     public void removeLike() {
         if (likesNumber > 0) {
-            likesNumber--;
+            --likesNumber;
         }
     }
 
