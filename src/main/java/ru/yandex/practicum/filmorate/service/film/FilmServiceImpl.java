@@ -49,7 +49,8 @@ public class FilmServiceImpl implements FilmService {
             throw new ValidationException(message);
         }
 
-        Set<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).thenComparing(Film::getId));
+        Set<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).reversed()
+                .thenComparing(Film::getId));
         filmsChart.addAll(filmStorage.getAllFilms());
 
         return filmsChart.stream().limit(count).collect(Collectors.toList());
