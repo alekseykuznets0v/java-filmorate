@@ -45,11 +45,11 @@ public class Film extends Entity {
         this.likesNumber = this.likes.size();
     }
 
-    public void addLike() {
+    public void increaseLikesNumber() {
         ++likesNumber;
     }
 
-    public void removeLike() {
+    public void decreaseLikesNumber() {
         if (likesNumber > 0) {
             --likesNumber;
         }

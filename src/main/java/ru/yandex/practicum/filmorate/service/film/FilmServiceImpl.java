@@ -25,19 +25,19 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public void addLike(Long userId, Long filmId) {
-        if (isUserIdExist(userId) && isFilmIdExist(filmId)) {
+        if (isUserIdExist(userId)) {
             Film film = getFilmById(filmId);
             film.getLikes().add(userId);
-            film.addLike();
+            film.increaseLikesNumber();
         }
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
-        if (isUserIdExist(userId) && isFilmIdExist(filmId)) {
+        if (isUserIdExist(userId)) {
             Film film = getFilmById(filmId);
             film.getLikes().remove(userId);
-            film.removeLike();
+            film.decreaseLikesNumber();
         }
     }
 
@@ -88,9 +88,5 @@ public class FilmServiceImpl implements FilmService {
 
     private boolean isUserIdExist(Long id) {
         return userStorage.isUserIdExist(id);
-    }
-
-    private boolean isFilmIdExist(Long id) {
-        return filmStorage.isFilmIdExist(id);
     }
 }

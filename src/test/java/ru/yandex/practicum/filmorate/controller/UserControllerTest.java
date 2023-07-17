@@ -196,7 +196,7 @@ class UserControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(handler().methodName("update"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value("В базе данных отсутствует пользователь с id=69"));
+                .andExpect(jsonPath("$.error").value("Пользователь с id=69 не найден"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));

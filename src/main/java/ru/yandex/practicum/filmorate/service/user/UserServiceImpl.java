@@ -21,29 +21,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addFriend(Long id, Long friendId) {
-        if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            User user = getUserById(id);
-            User friend = getUserById(friendId);
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
 
-            user.getFriends().add(friendId);
-            friend.getFriends().add(id);
-        }
+        user.getFriends().add(friendId);
+        friend.getFriends().add(id);
     }
 
     @Override
     public void deleteFriend(Long id, Long friendId) {
-        if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            User user = getUserById(id);
-            User friend = getUserById(friendId);
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
 
-            if (user.getFriends().contains(friendId)) {
-                user.getFriends().remove(friendId);
-                friend.getFriends().remove(id);
-            } else {
-                String message = String.format("У пользователя %s нет в списке друга с id=%s", user.getName(), friendId);
-                log.warn(message);
-                throw new NotFoundException(message);
-            }
+        if (user.getFriends().contains(friendId)) {
+            user.getFriends().remove(friendId);
+            friend.getFriends().remove(id);
+        } else {
+            String message = String.format("У пользователя %s нет в списке друга с id=%s", user.getName(), friendId);
+            log.warn(message);
+            throw new NotFoundException(message);
         }
     }
 
@@ -54,14 +50,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getCommonFriends(Long id, Long friendId) {
-        List<User> commonFriends = new ArrayList<>();
+        List<User> commonFriends = new ArrayList<>(getFriends(id));
+        final List<User> friendFriends = new ArrayList<>(getFriends(friendId));
 
-        if (isUserIdExist(id) && isUserIdExist(friendId)) {
-            final List<User> friendFriends = new ArrayList<>(getFriends(friendId));
-            commonFriends.addAll(getFriends(id));
-            commonFriends.retainAll(friendFriends);
-        }
-
+        commonFriends.retainAll(friendFriends);
         return commonFriends;
     }
 
@@ -93,9 +85,5 @@ public class UserServiceImpl implements UserService {
     @Override
     public void resetIdentifier() {
         userStorage.setIdentifier(0);
-    }
-
-    private boolean isUserIdExist(Long id) {
-        return userStorage.isUserIdExist(id);
     }
 }

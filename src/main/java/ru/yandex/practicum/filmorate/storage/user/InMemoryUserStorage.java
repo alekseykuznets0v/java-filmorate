@@ -32,14 +32,9 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
 
     @Override
     public User updateUser(User user) {
-        if (storage.containsKey(user.getId())) {
-            storage.put(user.getId(), user);
-            return storage.get(user.getId());
-        } else {
-            String warning = String.format("В базе данных отсутствует пользователь с id=%s", user.getId());
-            log.warn(NotFoundException.class + ": " + warning);
-            throw new NotFoundException(warning);
-        }
+        isUserIdExist(user.getId());
+        storage.put(user.getId(), user);
+        return user;
     }
 
     @Override
@@ -49,13 +44,8 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
 
     @Override
     public User getUserById(Long id) {
-        if (storage.containsKey(id)) {
-            return storage.get(id);
-        } else {
-            String warning = String.format("В базе данных отсутствует пользователь с id=%s", id);
-            log.warn(NotFoundException.class + ": " + warning);
-            throw new NotFoundException(warning);
-        }
+        isUserIdExist(id);
+        return storage.get(id);
     }
 
     @Override
@@ -76,19 +66,13 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
 
     @Override
     public List<User> getFriends(Long id) {
-        List<User> friends = new ArrayList<>();
+        Set<Long> friendIds = getUserById(id).getFriends();
 
-        if (isUserIdExist(id)) {
-            Set<Long> friendIds = getUserById(id).getFriends();
-
-            friends.addAll(storage.entrySet()
-                    .stream()
-                    .filter(entry -> friendIds.contains(entry.getKey()))
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList()));
-        }
-
-        return friends;
+        return storage.entrySet()
+                .stream()
+                .filter(entry -> friendIds.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     @Override
