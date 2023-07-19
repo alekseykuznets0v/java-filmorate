@@ -10,14 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -56,16 +54,15 @@ class UserControllerTest {
         blankLoginUser = sampleUser.toBuilder().login("").build();
         spacesLoginUser = sampleUser.toBuilder().login("bilbo baggins").build();
         unbornUser = sampleUser.toBuilder().birthday(LocalDate.now().plusDays(1)).build();
-        notExistingUser = sampleUser.toBuilder().id(69).login("sam").build();
-        alreadyExistingUser = sampleUser.toBuilder().id(1).build();
-        updatedUser = sampleUser.toBuilder().id(1).login("awesome_bilbo").build();
+        notExistingUser = sampleUser.toBuilder().id(69L).login("sam").build();
+        alreadyExistingUser = sampleUser.toBuilder().id(1L).build();
+        updatedUser = sampleUser.toBuilder().id(1L).login("awesome_bilbo").build();
     }
 
     @AfterEach
     void cleanStorage() {
-        userController.getStorage().clear();
-        userController.setIdentifier(0);
-        userController.getEmails().clear();
+        userController.getUserServiceImpl().deleteAllUsers();
+        userController.getUserServiceImpl().resetIdentifier();
     }
 
     @Test
@@ -86,14 +83,14 @@ class UserControllerTest {
         final int usersSize = userController.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
 
-        final User savedUser = userController.getStorage().get(1);
+        final User savedUser = userController.getUserServiceImpl().getUserById(1L);
         assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
     }
 
     @Test
     void shouldThrowException_EmptyContent_Endpoint_PostUsers() throws Exception {
         MvcResult result = mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(""))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isInternalServerError())
                 .andExpect(handler().methodName("add"))
                 .andReturn();
 
@@ -110,7 +107,9 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Email не может быть пустым"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
@@ -122,7 +121,9 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Некорректный формат email"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
@@ -134,7 +135,9 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Логин не может содержать пробелы"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
@@ -146,7 +149,9 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Логин не может быть пустым"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
@@ -158,43 +163,43 @@ class UserControllerTest {
 
         this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
                 .andExpect(status().isBadRequest())
-                .andReturn();
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Дата рождения не может быть в будущем"));
 
         final int usersSize = userController.getAllUsers().size();
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
     }
 
     @Test
-    void shouldNotAddUserAndThrowException_AlreadyExistingUser_Endpoint_PostUsers() throws Exception {
+    void shouldNotAddUser_AlreadyExistingUser_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(user);
         final String jsonUser1 = objectMapper.writeValueAsString(alreadyExistingUser);
 
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser));
 
-        NestedServletException exception = assertThrows(NestedServletException.class,
-                () -> mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonUser1)));
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1))
+                .andExpect(status().isBadRequest())
+                .andExpect(handler().methodName("add"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Пользователь с email=1@yandex.ru уже существует"));
 
-        String exceptionMessage = exception.getCause().getMessage();
         final int usersSize = userController.getAllUsers().size();
-
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
-        assertEquals("Пользователь с email=1@yandex.ru уже существует", exceptionMessage);
     }
 
     @Test
-    void shouldNotUpdateUserAndThrowException_NotExistingUser_Endpoint_PutUsers() throws Exception {
+    void shouldNotUpdateUser_NotExistingUser_Endpoint_PutUsers() throws Exception {
         final String jsonUser1 = objectMapper.writeValueAsString(notExistingUser);
 
-        NestedServletException exception = assertThrows(NestedServletException.class,
-                () -> mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonUser1)));
+        mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1))
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("update"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Пользователь с id=69 не найден"));
 
-        String exceptionMessage = exception.getCause().getMessage();
         final int usersSize = userController.getAllUsers().size();
-
         assertEquals(0, usersSize, String.format("Ожидался размер списка 0, а получен %s", usersSize));
-        assertEquals("В базе данных нет пользователя с id=69", exceptionMessage);
     }
 
     @Test
