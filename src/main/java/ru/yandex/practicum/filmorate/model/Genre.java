@@ -1,22 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-@EqualsAndHashCode(callSuper = false)
-@Getter
-@Setter
-public class Genre extends Entity{
+@Data
+@AllArgsConstructor
+public class Genre {
+    @NotNull(message = "Id MPA не может быть null")
+    private int id;
     @NotBlank(message = "Название жанра не может быть пустым")
-    private final String name;
-
-    @Builder(toBuilder = true)
-    public Genre(Long id, String name) {
-        setId(id == null ? 0L : id);
-        this.name = name;
-    }
+    private String name;
 }
