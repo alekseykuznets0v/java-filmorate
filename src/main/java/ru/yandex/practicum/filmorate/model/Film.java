@@ -33,9 +33,15 @@ public class Film extends Entity {
     private Set<Long> likes;
     @EqualsAndHashCode.Exclude
     private int likesNumber;
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private Set<Genre> genres;
+    @NotNull(message = "Рейтинг MPA не может быть null")
+    private MpaRating mpa;
 
     @Builder(toBuilder = true)
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Set<Long> likes) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Set<Long> likes, Set<Genre> genres, MpaRating mpa) {
+        this.mpa = mpa;
         setId(id == null ? 0L : id);
         this.name = name;
         this.description = description;
@@ -43,6 +49,8 @@ public class Film extends Entity {
         this.duration = duration;
         setLikes(likes == null ? new HashSet<>() : likes);
         this.likesNumber = this.likes.size();
+        setGenres(genres == null ? new HashSet<>() : genres);
+        this.mpa = mpa;
     }
 
     public void increaseLikesNumber() {
@@ -64,6 +72,7 @@ public class Film extends Entity {
                 ", duration=" + duration +
                 ", id=" + id +
                 ", likesNumber=" + likesNumber +
+                ", mpa=" + mpa +
                 '}';
     }
 }
