@@ -15,6 +15,8 @@ public interface FilmStorage {
 
     void deleteAllFilms();
 
+    void deleteFilmById(Long id);
+
     void setIdentifier(long identifier);
 
     void isFilmIdExist(Long id);

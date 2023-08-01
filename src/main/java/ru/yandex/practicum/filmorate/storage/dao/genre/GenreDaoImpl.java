@@ -44,13 +44,13 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public Set<Genre> getGenresByFilmId(Long filmId) {
-        String request = "SELECT g.id, g.name" +
+        String request = "SELECT g.id, g.name " +
                          "FROM films AS f " +
-                         "JOIN film_genres AS fg ON f.id = fg.film_id" +
-                         "JOIN genres AS g ON fg.genre_id = g.id" +
+                         "JOIN film_genres AS fg ON f.id = fg.film_id " +
+                         "JOIN genres AS g ON fg.genre_id = g.id " +
                          "WHERE f.id = ?";
-        log.info("Получен список жанров к фильму с id={}", filmId);
-        return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs), filmId));
+        Set<Genre> genres = new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs), filmId));
+        return genres;
     }
 
     private Genre makeGenre (ResultSet rs) throws SQLException {

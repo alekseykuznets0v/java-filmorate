@@ -1,13 +1,13 @@
 INSERT INTO mpa (name)
-VALUES ('G- У фильма нет возрастных ограничений');
+VALUES ('G');
 INSERT INTO mpa (name)
-VALUES ('PG - Детям рекомендуется смотреть фильм с родителями');
+VALUES ('PG');
 INSERT INTO mpa (name)
-VALUES ('PG-13 - Детям до 13 лет просмотр нежелателен');
+VALUES ('PG-13');
 INSERT INTO mpa (name)
-VALUES ('R - Лицам до 17 лет просматривать фильм можно только в присутствии взрослого');
+VALUES ('R');
 INSERT INTO mpa (name)
-VALUES ('NC-17 - Лицам до 18 лет просмотр запрещён');
+VALUES ('NC-17');
 
 INSERT INTO genres (name)
 VALUES ('Комедия');

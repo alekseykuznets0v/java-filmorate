@@ -60,6 +60,12 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
     }
 
     @Override
+    public void deleteFilmById(Long id) {
+        isFilmIdExist(id);
+        storage.remove(id);
+    }
+
+    @Override
     public void isFilmIdExist(Long id) {
         if (!storage.containsKey(id)) {
             String message = String.format("В базе данных отсутствует фильм с id=%s", id);

@@ -7,9 +7,10 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class MpaRating {
     @NotNull(message = "Id mpa не может быть null")
-    private int id;
+    private final int id;
     @NotBlank(message = "Название рейтинга не может быть пустым")
     private String name;
 }

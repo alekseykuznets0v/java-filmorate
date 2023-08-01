@@ -7,16 +7,10 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class Genre {
-    @NotNull(message = "Id MPA не может быть null")
-    private int id;
+    @NotNull(message = "Id жанра не может быть null")
+    private final int id;
     @NotBlank(message = "Название жанра не может быть пустым")
     private String name;
-
-    @Override
-    public String toString() {
-        return "Genre{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }

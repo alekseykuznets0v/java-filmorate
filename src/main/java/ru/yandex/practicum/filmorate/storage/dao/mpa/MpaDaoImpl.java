@@ -35,7 +35,7 @@ public class MpaDaoImpl implements MpaDao {
     @Override
     public Collection<MpaRating> getAllMpa() {
         String request = "SELECT * " +
-                         "FROM mpa" +
+                         "FROM mpa " +
                          "ORDER BY id";
         return jdbcTemplate.query(request, (rs, rowNum) -> makeMpaRating(rs));
     }
