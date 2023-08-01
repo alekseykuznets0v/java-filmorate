@@ -12,4 +12,11 @@ public class Genre {
     private int id;
     @NotBlank(message = "Название жанра не может быть пустым")
     private String name;
+
+    @Override
+    public String toString() {
+        return "Genre{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

@@ -8,8 +8,8 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 public class Like {
-    @NotNull(message = "Id не может быть null")
+    @NotNull(message = "Id фильма не может быть null")
     private long filmId;
-    @NotNull(message = "Id не может быть null")
+    @NotNull(message = "Id пользователя не может быть null")
     private long userId;
 }
