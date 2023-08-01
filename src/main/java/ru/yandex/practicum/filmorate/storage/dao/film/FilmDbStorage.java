@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.storage.dao.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.dao.genre.GenreDao;
@@ -30,7 +32,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(Long id) {
-        return null;
+        isFilmIdExist(id);
+        String request = "SELECT *," +
+                         "FROM films" +
+                         "WHERE id = ?";
+        return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeFilm(rs), id);
     }
 
     @Override
@@ -44,18 +50,25 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void setIdentifier(long identifier) {
-
-    }
-
-    @Override
     public void deleteAllFilms() {
 
     }
 
     @Override
-    public boolean isFilmIdExist(Long id) {
-        return false;
+    public void setIdentifier(long identifier) {
+        throw new UnsupportedOperationException("Эта операция не поддерживается");
+    }
+
+    @Override
+    public void isFilmIdExist(Long id) {
+        String request = "SELECT id," +
+                         "FROM films" +
+                         "WHERE id = ?";
+        SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
+
+        if(!idRows.next()) {
+            throw new NotFoundException(String.format("Фильм с id=%s не найден", id));
+        }
     }
 
     private Film makeFilm (ResultSet rs) throws SQLException {
