@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,20 +26,14 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public void addLike(Long userId, Long filmId) {
-        if (isUserIdExist(userId)) {
-            Film film = getFilmById(filmId);
-            film.getLikes().add(userId);
-            film.increaseLikesNumber();
-        }
+        userStorage.isUserIdExist(userId);
+        filmStorage.addLike(userId, filmId);
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
-        if (isUserIdExist(userId)) {
-            Film film = getFilmById(filmId);
-            film.getLikes().remove(userId);
-            film.decreaseLikesNumber();
-        }
+        userStorage.isUserIdExist(userId);
+        filmStorage.deleteLike(userId, filmId);
     }
 
     @Override
@@ -51,12 +44,7 @@ public class FilmServiceImpl implements FilmService {
             throw new ValidationException(message);
         }
 
-        Set<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).reversed()
-                .thenComparing(Film::getId));
-
-        filmsChart.addAll(filmStorage.getAllFilms());
-
-        return filmsChart.stream().limit(count).collect(Collectors.toList());
+        return filmStorage.getMostPopularFilms(count);
     }
 
     @Override
@@ -89,7 +77,4 @@ public class FilmServiceImpl implements FilmService {
         filmStorage.setIdentifier(0);
     }
 
-    private boolean isUserIdExist(Long id) {
-        return userStorage.isUserIdExist(id);
-    }
 }

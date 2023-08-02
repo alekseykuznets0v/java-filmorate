@@ -16,9 +16,15 @@ public interface UserStorage {
 
     void setIdentifier(long identifier);
 
-    boolean isUserIdExist(Long id);
+    void isUserIdExist(Long id);
 
     List<User> getFriends(Long id);
 
     void deleteAllUsers();
+
+    void deleteUserById(Long id);
+
+    void addFriend(Long id, Long friendId);
+
+    void deleteFriend(Long id, Long friendId);
 }

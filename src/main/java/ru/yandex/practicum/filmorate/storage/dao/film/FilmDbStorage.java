@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -137,6 +138,34 @@ public class FilmDbStorage implements FilmStorage {
         if(!idRows.next()) {
             throw new NotFoundException(String.format("Фильм с id=%s не найден", id));
         }
+    }
+
+    @Override
+    public List<Film> getMostPopularFilms(Integer count) {
+        String request = "SELECT f.id, " +
+                         "f.name, " +
+                         "f.description, " +
+                         "f.release_date, " +
+                         "f.duration, " +
+                         "f.mpa_id, " +
+                         "COUNT(l.user_id) AS film_likes " +
+                         "FROM films AS f " +
+                         "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                         "GROUP BY f.id " +
+                         "ORDER BY film_likes ASC " +
+                         "LIMIT ?";
+
+        return jdbcTemplate.query(request, (rs, rowNum) -> makeFilm(rs), count);
+    }
+
+    @Override
+    public void addLike(Long userId, Long filmId) {
+
+    }
+
+    @Override
+    public void deleteLike(Long userId, Long filmId) {
+
     }
 
     private void addGenresForFilm (Long filmId, Set<Genre> genres) {

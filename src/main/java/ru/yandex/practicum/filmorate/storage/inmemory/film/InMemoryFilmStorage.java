@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.inmemory.InMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("InMemoryFilmStorage")
 @Slf4j
@@ -72,5 +73,29 @@ public class InMemoryFilmStorage extends InMemoryStorage<Film> implements FilmSt
             log.warn(message);
             throw new NotFoundException(message);
         }
+    }
+
+    @Override
+    public List<Film> getMostPopularFilms(Integer count) {
+        Set<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).reversed()
+                .thenComparing(Film::getId));
+
+        filmsChart.addAll(getAllFilms());
+
+        return filmsChart.stream().limit(count).collect(Collectors.toList());
+    }
+
+    @Override
+    public void addLike(Long userId, Long filmId) {
+        Film film = getFilmById(filmId);
+        film.getLikes().add(userId);
+        film.increaseLikesNumber();
+    }
+
+    @Override
+    public void deleteLike(Long userId, Long filmId) {
+        Film film = getFilmById(filmId);
+        film.getLikes().remove(userId);
+        film.decreaseLikesNumber();
     }
 }

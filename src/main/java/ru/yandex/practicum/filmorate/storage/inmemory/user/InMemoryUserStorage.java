@@ -55,10 +55,8 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     }
 
     @Override
-    public boolean isUserIdExist(Long id) {
-        if (storage.containsKey(id)) {
-            return true;
-        } else {
+    public void isUserIdExist(Long id) {
+        if (!storage.containsKey(id)) {
             String message = String.format("Пользователь с id=%s не найден", id);
             log.warn(message);
             throw new NotFoundException(message);
@@ -79,6 +77,36 @@ public class InMemoryUserStorage extends InMemoryStorage<User> implements UserSt
     @Override
     public void deleteAllUsers() {
         storage.clear();
+    }
+
+    @Override
+    public void deleteUserById(Long id) {
+        isUserIdExist(id);
+        storage.remove(id);
+    }
+
+    @Override
+    public void addFriend(Long id, Long friendId) {
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
+
+        user.getFriends().add(friendId);
+        friend.getFriends().add(id);
+    }
+
+    @Override
+    public void deleteFriend(Long id, Long friendId) {
+        User user = getUserById(id);
+        User friend = getUserById(friendId);
+
+        if (user.getFriends().contains(friendId)) {
+            user.getFriends().remove(friendId);
+            friend.getFriends().remove(id);
+        } else {
+            String message = String.format("У пользователя %s нет в списке друга с id=%s", user.getName(), friendId);
+            log.warn(message);
+            throw new NotFoundException(message);
+        }
     }
 
     private boolean isEmailExist(String email) {

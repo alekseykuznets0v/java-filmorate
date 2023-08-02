@@ -35,7 +35,7 @@ public class User extends Entity {
         this.email = email;
         this.login = login;
         this.birthday = birthday;
-        setFriends(this.friends == null ? new HashSet<>() : this.friends);
+        setFriends(friends == null ? new HashSet<>() : friends);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class User extends Entity {
                 ", name='" + name + '\'' +
                 ", birthday=" + birthday +
                 ", id=" + id +
-                ", friends=" + friends.size() +
+                ", friends_size=" + friends.size() +
                 '}';
     }
 }
