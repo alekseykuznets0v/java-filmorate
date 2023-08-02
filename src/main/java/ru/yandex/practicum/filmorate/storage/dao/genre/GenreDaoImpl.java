@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate.storage.dao.genre;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -19,25 +19,22 @@ import java.util.Set;
 @Slf4j
 public class GenreDaoImpl implements GenreDao {
     private final JdbcTemplate jdbcTemplate;
+    private static final String FROM_GENRES = "FROM genres ";
 
     @Override
     public Genre getGenreById(int id) {
+        isGenreIdExist(id);
         String request = "SELECT * " +
-                         "FROM genres " +
+                         FROM_GENRES +
                          "WHERE id = ?";
-        try {
-            return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeGenre(rs), id);
-        } catch (DataAccessException e) {
-            String message = String.format("Жанр с id=%s не найден", id);
-            log.warn(message);
-            throw new NotFoundException(message);
-        }
+
+        return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeGenre(rs), id);
     }
 
     @Override
     public Collection<Genre> getAllGenres() {
         String request = "SELECT * " +
-                         "FROM genres " +
+                         FROM_GENRES +
                          "ORDER BY id";
         return jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs));
     }
@@ -49,11 +46,21 @@ public class GenreDaoImpl implements GenreDao {
                          "JOIN film_genres AS fg ON f.id = fg.film_id " +
                          "JOIN genres AS g ON fg.genre_id = g.id " +
                          "WHERE f.id = ?";
-        Set<Genre> genres = new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs), filmId));
-        return genres;
+        return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs), filmId));
     }
 
-    private Genre makeGenre (ResultSet rs) throws SQLException {
+    private void isGenreIdExist(Integer id) {
+        String request = "SELECT id " +
+                         FROM_GENRES +
+                         "WHERE id = ?";
+        SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
+
+        if(!idRows.next()) {
+            throw new NotFoundException(String.format("Жанр с id=%s не найден", id));
+        }
+    }
+
+    private Genre makeGenre(ResultSet rs) throws SQLException {
         return new Genre(rs.getInt("id"), rs.getString("name"));
     }
 }

@@ -53,6 +53,7 @@ public class FilmServiceImpl implements FilmService {
 
         Set<Film> filmsChart = new TreeSet<>(Comparator.comparing(Film::getLikesNumber).reversed()
                 .thenComparing(Film::getId));
+
         filmsChart.addAll(filmStorage.getAllFilms());
 
         return filmsChart.stream().limit(count).collect(Collectors.toList());

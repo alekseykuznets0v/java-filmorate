@@ -71,6 +71,7 @@ public class Film extends Entity {
                 ", id=" + id +
                 ", likesNumber=" + likesNumber +
                 ", mpa=" + mpa +
+                ", genres=" + genres.size() +
                 '}';
     }
 }

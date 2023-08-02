@@ -77,6 +77,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         isFilmIdExist(film.getId());
+
         String request = "UPDATE films " +
                          "SET name = ?, " +
                          "description = ?, " +
@@ -84,6 +85,7 @@ public class FilmDbStorage implements FilmStorage {
                          "duration = ?, " +
                          "mpa_id = ? " +
                          WHERE_ID;
+
         String selectRequest = SELECT_ALL +
                                FROM_FILMS +
                                WHERE_ID;
@@ -95,6 +97,8 @@ public class FilmDbStorage implements FilmStorage {
                             film.getDuration(),
                             film.getMpa().getId(),
                             film.getId());
+
+        updateGenresForFilm(film.getId(), film.getGenres());
 
         return jdbcTemplate.queryForObject(selectRequest, (rs, rowNum) -> makeFilm(rs), film.getId());
     }
@@ -141,6 +145,14 @@ public class FilmDbStorage implements FilmStorage {
                              "VALUES (?, ?)";
             genres.forEach(genre -> jdbcTemplate.update(request, filmId, genre.getId()));
         }
+    }
+
+    private void updateGenresForFilm (Long filmId, Set<Genre> genres) {
+        String request = "DELETE FROM film_genres " +
+                         "WHERE film_id = ?";
+
+        jdbcTemplate.update(request, filmId);
+        addGenresForFilm(filmId, genres);
     }
 
     private Film makeFilm (ResultSet rs) throws SQLException {

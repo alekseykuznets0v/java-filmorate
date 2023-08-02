@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate.storage.dao.mpa;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
@@ -17,27 +17,34 @@ import java.util.Collection;
 @Slf4j
 public class MpaDaoImpl implements MpaDao {
     private final JdbcTemplate jdbcTemplate;
+    private static final String FROM_MPA = "FROM mpa ";
 
     @Override
     public MpaRating getMpaById(int id) {
+        isMpaIdExist(id);
         String request = "SELECT * " +
-                         "FROM mpa " +
+                         FROM_MPA +
                          "WHERE id = ?";
-        try {
-            return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeMpaRating(rs), id);
-        } catch (DataAccessException e) {
-            String message = String.format("Рейтинг с id=%s не найден", id);
-            log.warn(message);
-            throw new NotFoundException(message);
-        }
+        return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeMpaRating(rs), id);
     }
 
     @Override
     public Collection<MpaRating> getAllMpa() {
         String request = "SELECT * " +
-                         "FROM mpa " +
+                         FROM_MPA +
                          "ORDER BY id";
         return jdbcTemplate.query(request, (rs, rowNum) -> makeMpaRating(rs));
+    }
+
+    private void isMpaIdExist(Integer id) {
+        String request = "SELECT id " +
+                         FROM_MPA +
+                         "WHERE id = ?";
+        SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
+
+        if(!idRows.next()) {
+            throw new NotFoundException(String.format("MPA рейтинг с id=%s не найден", id));
+        }
     }
 
     private MpaRating makeMpaRating (ResultSet rs) throws SQLException {
