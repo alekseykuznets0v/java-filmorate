@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.storage.dao.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,9 +14,12 @@ import ru.yandex.practicum.filmorate.storage.dao.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.dao.like.LikeDao;
 import ru.yandex.practicum.filmorate.storage.dao.mpa.MpaDao;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 
 @Component("FilmDbStorage")
@@ -49,31 +54,24 @@ public class FilmDbStorage implements FilmStorage {
     public Film addFilm(Film film) {
         String updateRequest = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
                                 "VALUES (?, ?, ?, ?, ?)";
-        String selectRequest = SELECT_ALL + FROM_FILMS +
-                                "WHERE name = ? " +
-                                "AND description = ? " +
-                                "AND release_date = ? " +
-                                "AND duration = ?";
 
-        jdbcTemplate.update(updateRequest,
-                            film.getName(),
-                            film.getDescription(),
-                            film.getReleaseDate(),
-                            film.getDuration(),
-                            film.getMpa().getId());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        Film savedFilm = jdbcTemplate.queryForObject(selectRequest, (rs, rowNum) -> makeFilm(rs),
-                            film.getName(),
-                            film.getDescription(),
-                            film.getReleaseDate(),
-                            film.getDuration());
+        jdbcTemplate.update(con -> {
+            PreparedStatement preparedStatement = con.prepareStatement(updateRequest, new String[]{"id"});
+            preparedStatement.setString(1, film.getName());
+            preparedStatement.setString(2, film.getDescription());
+            preparedStatement.setDate(3, Date.valueOf(film.getReleaseDate()));
+            preparedStatement.setInt(4, film.getDuration());
+            preparedStatement.setInt(5, film.getMpa().getId());
+            return preparedStatement;
+        }, keyHolder);
 
-        if (savedFilm != null) {
-            addGenresForFilm(savedFilm.getId(), savedFilm.getGenres());
-            return getFilmById(savedFilm.getId());
-        } else {
-            throw new NotFoundException("jib,rf");
-        }
+        Long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
+
+        addGenresForFilm(filmId, film.getGenres());
+
+        return getFilmById(filmId);
     }
 
     @Override
@@ -116,9 +114,13 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(request, id);
     }
 
+    /*  Метод setIdentifier нужен для тестирования реализации InMemoryFilmStorage,
+        если функционал хранения данных в оперативной памяти будет не актуален,
+        то метод можно удалить из интерфейса и его реализации, а также сервиса и контроллера
+    */
     @Override
     public void setIdentifier(long identifier) {
-        throw new UnsupportedOperationException("Эта операция не поддерживается");
+        throw new UnsupportedOperationException("Операция setIdentifier для фильмов не поддерживается");
     }
 
     @Override

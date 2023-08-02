@@ -55,5 +55,12 @@ public class ErrorHandler {
         log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleUnsupportedOperationException(final UnsupportedOperationException e) {
+        log.warn(e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
 }
 
