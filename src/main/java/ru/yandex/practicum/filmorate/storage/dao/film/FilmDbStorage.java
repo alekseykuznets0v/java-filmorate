@@ -152,7 +152,7 @@ public class FilmDbStorage implements FilmStorage {
                          "FROM films AS f " +
                          "LEFT JOIN likes AS l ON f.id = l.film_id " +
                          "GROUP BY f.id " +
-                         "ORDER BY film_likes ASC " +
+                         "ORDER BY film_likes DESC " +
                          "LIMIT ?";
 
         return jdbcTemplate.query(request, (rs, rowNum) -> makeFilm(rs), count);
@@ -160,12 +160,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void addLike(Long userId, Long filmId) {
-
+        isFilmIdExist(filmId);
+        likeDao.addLike(filmId, userId);
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
-
+        isFilmIdExist(filmId);
+        likeDao.deleteLike(filmId, userId);
     }
 
     private void addGenresForFilm (Long filmId, Set<Genre> genres) {
