@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.dao.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Component("UserDbStorage")
 @RequiredArgsConstructor
+@Slf4j
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendsDao friendsDao;
@@ -29,6 +31,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
+        log.info("В БД отправлен запрос getAllUsers");
         String request = SELECT_ALL +
                          FROM_USERS;
         return jdbcTemplate.query(request, (rs, rowNum) -> makeUser(rs));
@@ -37,6 +40,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User getUserById(Long id) {
         isUserIdExist(id);
+        log.info("В БД отправлен запрос getUserById c параметром " + id);
         String request = SELECT_ALL +
                          FROM_USERS +
                          WHERE_ID;
@@ -67,7 +71,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User updateUser(User user) {
         isUserIdExist(user.getId());
-
+        log.info("В БД отправлен запрос updateUser c параметром " + user);
         String request = "UPDATE users " +
                          "SET email = ?, " +
                          "login = ?, " +
@@ -95,11 +99,13 @@ public class UserDbStorage implements UserStorage {
     */
     @Override
     public void setIdentifier(long identifier) {
+        log.info("Из сервиса запрошен неподдерживаемый метод setIdentifier");
         throw new UnsupportedOperationException("Операция setIdentifier для фильмов не поддерживается");
     }
 
     @Override
     public List<User> getFriends(Long id) {
+        log.info("В БД отправлен запрос getFriends c параметром " + id);
         return friendsDao.getFriendsIdByUserId(id).stream()
                 .mapToLong(Long::valueOf)
                 .mapToObj(this::getUserById)
@@ -108,6 +114,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteAllUsers() {
+        log.info("В БД отправлен запрос deleteAllUsers");
         String request = "TRUNCATE TABLE users";
         jdbcTemplate.execute(request);
     }
@@ -115,6 +122,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void deleteUserById(Long id) {
         isUserIdExist(id);
+        log.info("В БД отправлен запрос deleteUserById с параметром" + id);
         String request = "DELETE " +
                          FROM_USERS +
                          WHERE_ID;
@@ -125,6 +133,7 @@ public class UserDbStorage implements UserStorage {
     public void addFriend(Long id, Long friendId) {
         isUserIdExist(id);
         isUserIdExist(friendId);
+        log.info("В БД отправлен запрос addFriend с параметрами userId=" + id + " и friendId=" + friendId);
         friendsDao.addFriendRequest(id, friendId);
     }
 
@@ -132,11 +141,13 @@ public class UserDbStorage implements UserStorage {
     public void deleteFriend(Long id, Long friendId) {
         isUserIdExist(id);
         isUserIdExist(friendId);
+        log.info("В БД отправлен запрос deleteFriend с параметрами userId=" + id + " и friendId=" + friendId);
         friendsDao.deleteFriend(id, friendId);
     }
 
     @Override
     public void isUserIdExist(Long id) {
+        log.info("В БД отправлен запрос isUserIdExist с параметром" + id);
         String request = "SELECT id " +
                 FROM_USERS +
                 WHERE_ID;

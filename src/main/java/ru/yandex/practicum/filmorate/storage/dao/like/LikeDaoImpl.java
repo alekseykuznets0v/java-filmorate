@@ -15,6 +15,7 @@ public class LikeDaoImpl implements LikeDao {
     private final JdbcTemplate jdbcTemplate;
     @Override
     public void addLike(Long filmId, Long userId) {
+        log.info("В БД отправлен запрос addLike с параметрами filmId=" + filmId + " и userId=" + userId);
         String request = "INSERT INTO likes (film_id, user_id) " +
                          "VALUES (?, ?)";
         jdbcTemplate.update(request, filmId, userId);
@@ -23,6 +24,7 @@ public class LikeDaoImpl implements LikeDao {
 
     @Override
     public void deleteLike(Long filmId, Long userId) {
+        log.info("В БД отправлен запрос deleteLike с параметрами filmId=" + filmId + " и userId=" + userId);
         String request = "DELETE FROM likes " +
                          "WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(request, filmId, userId);
@@ -31,6 +33,7 @@ public class LikeDaoImpl implements LikeDao {
 
     @Override
     public Set<Long> getLikesByFilmId(Long filmId) {
+        log.info("В БД отправлен запрос getLikesByFilmId с параметром" + filmId);
         String request = "SELECT user_id " +
                          "FROM likes " +
                          "WHERE film_id = ?";

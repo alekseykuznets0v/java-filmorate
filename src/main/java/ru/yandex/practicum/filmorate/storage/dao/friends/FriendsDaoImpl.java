@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.dao.friends;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class FriendsDaoImpl implements FriendsDao {
     private final JdbcTemplate jdbcTemplate;
     private static final String WHERE_USER_ID = "WHERE user_id = ? ";
@@ -17,6 +19,7 @@ public class FriendsDaoImpl implements FriendsDao {
 
     @Override
     public Set<Long> getFriendsIdByUserId(Long userId) {
+        log.info("В БД отправлен запрос getFriendsIdByUserId с параметром" + userId);
         String request = "SELECT friend_id " +
                          "FROM friends " +
                          WHERE_USER_ID +
@@ -27,6 +30,7 @@ public class FriendsDaoImpl implements FriendsDao {
 
     @Override
     public void addFriendRequest(Long fromUserId, Long toFriendId) {
+        log.info("В БД отправлен запрос addFriendRequest с параметрами userId=" + fromUserId + " и friendId=" + toFriendId);
         String request = "INSERT INTO friends (user_id, friend_id, approved) " +
                          "VALUES (?, ?, ?)";
         String updateApproval = "UPDATE friends " +
@@ -44,6 +48,7 @@ public class FriendsDaoImpl implements FriendsDao {
 
     @Override
     public void deleteFriend(Long userId, Long friendId) {
+        log.info("В БД отправлен запрос deleteFriend с параметрами userId=" + userId + " и friendId=" + friendId);
         String request = "DELETE FROM friends " +
                          WHERE_USER_ID +
                          AND_FRIEND_ID;
@@ -58,6 +63,7 @@ public class FriendsDaoImpl implements FriendsDao {
                          "FROM friends " +
                          WHERE_USER_ID +
                          AND_FRIEND_ID;
+        log.info("В БД отправлен запрос isReverseFriendRequestExists с параметрами userId=" + toFriendId + " и friendId=" + fromUserId);
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(request, toFriendId, fromUserId);
 

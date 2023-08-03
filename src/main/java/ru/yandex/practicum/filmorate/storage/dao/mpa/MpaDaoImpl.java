@@ -22,6 +22,7 @@ public class MpaDaoImpl implements MpaDao {
     @Override
     public MpaRating getMpaById(int id) {
         isMpaIdExist(id);
+        log.info("В БД отправлен запрос getMpaById с параметром" + id);
         String request = "SELECT * " +
                          FROM_MPA +
                          "WHERE id = ?";
@@ -30,6 +31,7 @@ public class MpaDaoImpl implements MpaDao {
 
     @Override
     public Collection<MpaRating> getAllMpa() {
+        log.info("В БД отправлен запрос getAllMpa");
         String request = "SELECT * " +
                          FROM_MPA +
                          "ORDER BY id";
@@ -37,6 +39,7 @@ public class MpaDaoImpl implements MpaDao {
     }
 
     private void isMpaIdExist(Integer id) {
+        log.info("В БД отправлен запрос isMpaIdExist с параметром" + id);
         String request = "SELECT id " +
                          FROM_MPA +
                          "WHERE id = ?";

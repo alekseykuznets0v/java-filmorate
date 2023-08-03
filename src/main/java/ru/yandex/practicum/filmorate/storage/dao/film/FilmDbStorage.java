@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.dao.film;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 @Component("FilmDbStorage")
 @RequiredArgsConstructor
+@Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final MpaDao mpaDao;
@@ -39,6 +41,7 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> getAllFilms() {
         String request = SELECT_ALL +
                          FROM_FILMS;
+        log.info("В БД отправлен запрос getAllFilms");
         return jdbcTemplate.query(request, (rs, rowNum) -> makeFilm(rs));
     }
 
@@ -48,11 +51,13 @@ public class FilmDbStorage implements FilmStorage {
         String request = SELECT_ALL +
                          FROM_FILMS +
                          WHERE_ID;
+        log.info("В БД отправлен запрос getFilmById c параметром " + id);
         return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeFilm(rs), id);
     }
 
     @Override
     public Film addFilm(Film film) {
+        log.info("В БД отправлен запрос addFilm c параметром " + film);
         String updateRequest = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
                                 "VALUES (?, ?, ?, ?, ?)";
 
@@ -77,8 +82,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
+        log.info("В БД отправлен запрос updateFilm c параметром " + film);
         isFilmIdExist(film.getId());
-
         String request = "UPDATE films " +
                          "SET name = ?, " +
                          "description = ?, " +
@@ -106,12 +111,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void deleteAllFilms() {
+        log.info("В БД отправлен запрос deleteAllFilms");
         String request = "TRUNCATE TABLE films";
         jdbcTemplate.execute(request);
     }
 
     @Override
     public void deleteFilmById(Long id) {
+        log.info("В БД отправлен запрос deleteFilmById с параметром" + id);
         isFilmIdExist(id);
         String request = "DELETE " +
                          FROM_FILMS +
@@ -125,11 +132,13 @@ public class FilmDbStorage implements FilmStorage {
     */
     @Override
     public void setIdentifier(long identifier) {
+        log.info("Из сервиса запрошен неподдерживаемый метод setIdentifier");
         throw new UnsupportedOperationException("Операция setIdentifier для фильмов не поддерживается");
     }
 
     @Override
     public void isFilmIdExist(Long id) {
+        log.info("В БД отправлен запрос isFilmIdExist с параметром" + id);
         String request = "SELECT id " +
                          FROM_FILMS +
                          WHERE_ID;
@@ -142,6 +151,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
+        log.info("В БД отправлен запрос getMostPopularFilms с параметром" + count);
         String request = "SELECT f.id, " +
                          "f.name, " +
                          "f.description, " +
@@ -160,25 +170,29 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void addLike(Long userId, Long filmId) {
+        log.info("В БД отправлен запрос addLike с параметрами userId=" + userId + " и filmId=" + filmId);
         isFilmIdExist(filmId);
         likeDao.addLike(filmId, userId);
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
+        log.info("В БД отправлен запрос deleteLike с параметрами userId=" + userId + " и filmId=" + filmId);
         isFilmIdExist(filmId);
         likeDao.deleteLike(filmId, userId);
     }
 
-    private void addGenresForFilm (Long filmId, Set<Genre> genres) {
+    private void addGenresForFilm(Long filmId, Set<Genre> genres) {
         if(!genres.isEmpty()) {
+            log.info("В БД отправлен запрос addGenresForFilm с параметрами filmId=" + filmId + " и genres=" + genres);
             String request = "INSERT INTO film_genres (film_id, genre_id) " +
                              "VALUES (?, ?)";
             genres.forEach(genre -> jdbcTemplate.update(request, filmId, genre.getId()));
         }
     }
 
-    private void updateGenresForFilm (Long filmId, Set<Genre> genres) {
+    private void updateGenresForFilm(Long filmId, Set<Genre> genres) {
+        log.info("В БД отправлен запрос updateGenresForFilm с параметрами filmId=" + filmId + " и genres=" + genres);
         String request = "DELETE FROM film_genres " +
                          "WHERE film_id = ?";
 
@@ -186,7 +200,7 @@ public class FilmDbStorage implements FilmStorage {
         addGenresForFilm(filmId, genres);
     }
 
-    private Film makeFilm (ResultSet rs) throws SQLException {
+    private Film makeFilm(ResultSet rs) throws SQLException {
         Long filmId = rs.getLong("id");
         return Film.builder()
                    .id(filmId)
