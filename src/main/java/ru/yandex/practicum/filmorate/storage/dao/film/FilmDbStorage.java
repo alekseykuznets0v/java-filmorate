@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -58,6 +59,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         log.info("В БД отправлен запрос addFilm c параметром " + film);
+        isFilmExist(film);
         String updateRequest = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
                                 "VALUES (?, ?, ?, ?, ?)";
 
@@ -112,13 +114,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public void deleteAllFilms() {
         log.info("В БД отправлен запрос deleteAllFilms");
-        String request = "TRUNCATE TABLE films";
+        String request = "DELETE " + FROM_FILMS;
         jdbcTemplate.execute(request);
     }
 
     @Override
     public void deleteFilmById(Long id) {
-        log.info("В БД отправлен запрос deleteFilmById с параметром" + id);
+        log.info("В БД отправлен запрос deleteFilmById с параметром " + id);
         isFilmIdExist(id);
         String request = "DELETE " +
                          FROM_FILMS +
@@ -138,7 +140,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void isFilmIdExist(Long id) {
-        log.info("В БД отправлен запрос isFilmIdExist с параметром" + id);
+        log.info("В БД отправлен запрос isFilmIdExist с параметром " + id);
         String request = "SELECT id " +
                          FROM_FILMS +
                          WHERE_ID;
@@ -151,7 +153,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
-        log.info("В БД отправлен запрос getMostPopularFilms с параметром" + count);
+        log.info("В БД отправлен запрос getMostPopularFilms с параметром " + count);
         String request = "SELECT f.id, " +
                          "f.name, " +
                          "f.description, " +
@@ -212,5 +214,24 @@ public class FilmDbStorage implements FilmStorage {
                    .likes(likeDao.getLikesByFilmId(filmId))
                    .genres(genreDao.getGenresByFilmId(filmId))
                    .build();
+    }
+
+    public void isFilmExist(Film film) {
+        log.info("В БД отправлен запрос isFilmExist с параметром" + film);
+        String request = "SELECT id, name, description, duration, release_date " +
+                FROM_FILMS +
+                "WHERE name = ? " +
+                "AND description = ? " +
+                "AND duration = ? " +
+                "AND release_date = ?";
+        SqlRowSet idRows = jdbcTemplate.queryForRowSet(request,
+                film.getName(),
+                film.getDescription(),
+                film.getDuration(),
+                film.getReleaseDate());
+
+        if(idRows.next()) {
+            throw new AlreadyExistsException("Такой фильм уже существует в БД");
+        }
     }
 }
