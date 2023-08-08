@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
     private User user;
     private User secondUser;
+    private User thirdUser;
     private User invalidEmailUser;
     private User wrongEmailFormatUser;
     private User blankLoginUser;
@@ -57,6 +58,7 @@ class UserControllerTest {
                 .build();
         user = sampleUser;
         secondUser = sampleUser.toBuilder().name("gendalf").login("white_mage").email("2@yandex.ru").birthday(testDate).build();
+        thirdUser = sampleUser.toBuilder().name("sam").login("awesomeSam").email("3@yandex.ru").birthday(testDate).build();
         invalidEmailUser = sampleUser.toBuilder().email("").build();
         wrongEmailFormatUser = sampleUser.toBuilder().email(".@.@d").build();
         blankLoginUser = sampleUser.toBuilder().login("").build();
