@@ -24,7 +24,7 @@ public class GenreDaoImpl implements GenreDao {
     @Override
     public Genre getGenreById(int id) {
         isGenreIdExist(id);
-        log.info("В БД отправлен запрос getGenreById с параметром" + id);
+        log.info("В БД отправлен запрос getGenreById с параметром: " + id);
         String request = "SELECT * " +
                          FROM_GENRES +
                          "WHERE id = ?";
@@ -43,7 +43,7 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public Set<Genre> getGenresByFilmId(Long filmId) {
-        log.info("В БД отправлен запрос getGenresByFilmId c параметром " + filmId);
+        log.info("В БД отправлен запрос getGenresByFilmId c параметром: " + filmId);
         String request = "SELECT g.id, g.name " +
                          "FROM films AS f " +
                          "JOIN film_genres AS fg ON f.id = fg.film_id " +
@@ -53,7 +53,7 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     private void isGenreIdExist(Integer id) {
-        log.info("В БД отправлен запрос isGenreIdExist с параметром" + id);
+        log.info("В БД отправлен запрос isGenreIdExist с параметром: " + id);
         String request = "SELECT id " +
                          FROM_GENRES +
                          "WHERE id = ?";

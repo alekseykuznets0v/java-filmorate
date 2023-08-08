@@ -172,14 +172,12 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void addLike(Long userId, Long filmId) {
-        log.info("В БД отправлен запрос addLike с параметрами userId=" + userId + " и filmId=" + filmId);
         isFilmIdExist(filmId);
         likeDao.addLike(filmId, userId);
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
-        log.info("В БД отправлен запрос deleteLike с параметрами userId=" + userId + " и filmId=" + filmId);
         isFilmIdExist(filmId);
         likeDao.deleteLike(filmId, userId);
     }

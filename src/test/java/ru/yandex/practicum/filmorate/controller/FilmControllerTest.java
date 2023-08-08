@@ -14,12 +14,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.storage.dao.like.LikeDao;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,6 +49,8 @@ class FilmControllerTest {
     private Film secondFilm;
     private final FilmController filmController;
     private final FilmService filmService;
+    private final UserService userService;
+    private final LikeDao likeDao;
     private final ObjectMapper objectMapper;
     private final MockMvc mockMvc;
 
@@ -356,5 +362,57 @@ class FilmControllerTest {
                 .andExpect(handler().methodName("getFilmById"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(returnedFilmId));
+    }
+
+    @Test
+    void shouldAddLike_EndPoint_PutLike() throws Exception {
+        User user = User.builder()
+                .email("45@yandex.ru")
+                .login("user")
+                .birthday(LocalDate.now())
+                .build();
+        User newUser = userService.addUser(user);
+        Film newFilm = filmService.addFilm(film);
+        Long filmId = newFilm.getId();
+        Long userId = newUser.getId();
+
+        mockMvc.perform(put("/films/{id}/like/{userId}", filmId, userId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("addLike"));
+
+        Film filmWithLike = filmService.getFilmById(filmId);
+        Set<Long> likes = filmWithLike.getLikes();
+        Set<Long> expectedLikes = Set.of(userId);
+        int likesNumber = filmWithLike.getLikesNumber();
+
+        assertEquals(1, likesNumber, String.format("Ожидалось количество лайков = 1, а получено: %s", likesNumber));
+        assertEquals(expectedLikes, likes, String.format("Ожидался один лайк от пользователя с id=%s", userId));
+    }
+
+    @Test
+    void shouldDeleteLike_EndPoint_DeleteLike() throws Exception {
+        User user = User.builder()
+                .email("1@yandex.ru")
+                .login("user")
+                .birthday(LocalDate.now())
+                .build();
+        User newUser = userService.addUser(user);
+        Film newFilm = filmService.addFilm(film);
+        Long filmId = newFilm.getId();
+        Long userId = newUser.getId();
+
+        likeDao.addLike(filmId, userId);
+
+        mockMvc.perform(delete("/films/{id}/like/{userId}", filmId, userId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("deleteLike"));
+
+        Film filmWithoutLike = filmService.getFilmById(filmId);
+        Set<Long> likes = filmWithoutLike.getLikes();
+        Set<Long> expectedLikes = Collections.emptySet();
+        int likesNumber = filmWithoutLike.getLikesNumber();
+
+        assertEquals(0, likesNumber, String.format("Ожидалось количество лайков = 0, а получено: %s", likesNumber));
+        assertEquals(expectedLikes, likes, String.format("Ожидался пустой список лайков, а получен %s", likes));
     }
 }

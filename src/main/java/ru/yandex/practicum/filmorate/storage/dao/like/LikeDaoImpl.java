@@ -33,7 +33,7 @@ public class LikeDaoImpl implements LikeDao {
 
     @Override
     public Set<Long> getLikesByFilmId(Long filmId) {
-        log.info("В БД отправлен запрос getLikesByFilmId с параметром" + filmId);
+        log.info("В БД отправлен запрос getLikesByFilmId с параметром: " + filmId);
         String request = "SELECT user_id " +
                          "FROM likes " +
                          "WHERE film_id = ?";

@@ -9,12 +9,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.filmorate.service.genre.GenreService;
+import ru.yandex.practicum.filmorate.model.Genre;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
@@ -22,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class GenreControllerTest {
     private final GenreController genreController;
-    private final GenreService genreService;
     private final ObjectMapper objectMapper;
     private final MockMvc mockMvc;
 
@@ -34,5 +34,35 @@ class GenreControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Комедия"));
+    }
+
+    @Test
+    void shouldNotReturnGenre_Endpoint_GetGenre() throws Exception {
+        int notExistingGenreId = 55;
+
+        mockMvc.perform(get("/genres/{id}", notExistingGenreId).accept(MediaType.ALL))
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("getGenreById"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error")
+                        .value(String.format("Жанр с id=%s не найден", notExistingGenreId)));
+
+    }
+
+    @Test
+    void shouldReturnAllGenres_Endpoint_GetGenres() throws Exception {
+        List<Genre> expectedGenres = new ArrayList<>(List.of(
+                new Genre(1, "Комедия"),
+                new Genre(2, "Драма"),
+                new Genre(3, "Мультфильм"),
+                new Genre(4, "Триллер"),
+                new Genre(5, "Документальный"),
+                new Genre(6, "Боевик")));
+
+        mockMvc.perform(get("/genres").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getAllGenres"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedGenres)));
     }
 }
