@@ -216,7 +216,7 @@ public class FilmDbStorage implements FilmStorage {
                    .build();
     }
 
-    public void isFilmExist(Film film) {
+    private void isFilmExist(Film film) {
         log.info("В БД отправлен запрос isFilmExist с параметром" + film);
         String request = "SELECT id, name, description, duration, release_date " +
                 FROM_FILMS +

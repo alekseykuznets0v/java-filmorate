@@ -17,12 +17,13 @@ import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -41,6 +42,7 @@ class FilmControllerTest {
     private Film notExistingFilm;
     private Film updatedFilm;
     private Film wrongMpaFilm;
+    private Film secondFilm;
     private final FilmController filmController;
     private final FilmService filmService;
     private final ObjectMapper objectMapper;
@@ -58,6 +60,13 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.of(2001, 1, 1))
                 .duration(200)
                 .mpa(new MpaRating(1))
+                .build();
+        secondFilm = Film.builder()
+                .name("Lord of the Rings")
+                .description("epic fantasy")
+                .releaseDate(LocalDate.of(2001, 1, 1))
+                .duration(228)
+                .mpa(new MpaRating(2))
                 .build();
         blankNameFilm = film.toBuilder().name("").build();
         blankDescriptionFilm = film.toBuilder().description("").build();
@@ -87,13 +96,14 @@ class FilmControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").exists()).andReturn();
 
-        final int filmsSize = filmController.getAllFilms().size();
-        assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
-
+        final int filmsSize = filmService.getAllFilms().size();
         final Film returnedFilm = objectMapper.readValue(result.getResponse().getContentAsString(), Film.class);
+        Long returnedFilmId = returnedFilm.getId();
+        final Film savedFilm = filmService.getFilmById(returnedFilmId);
+        Long savedFilmId = savedFilm.getId();
 
-        final Film savedFilm = filmController.getFilmById(returnedFilm.getId());
-        assertEquals(returnedFilm.getId(), savedFilm.getId(), String.format("Ожидался id=1, а получен id=%s", savedFilm.getId()));
+        assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
+        assertEquals(returnedFilmId, savedFilmId, String.format("Ожидался id=%s, а получен id=%s", returnedFilmId, savedFilmId));
     }
 
     @Test
@@ -104,7 +114,7 @@ class FilmControllerTest {
                 .andReturn();
 
         String exception = Objects.requireNonNull(result.getResolvedException()).getClass().toString();
-        final int filmsSize = filmController.getAllFilms().size();
+        final int filmsSize = filmService.getAllFilms().size();
 
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
         assertEquals("class org.springframework.http.converter.HttpMessageNotReadableException", exception);
@@ -254,6 +264,7 @@ class FilmControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonFilm))
                 .andReturn();
+
         final Film returnedFilm = objectMapper.readValue(result.getResponse().getContentAsString(), Film.class);
         final String jsonFilm1 = objectMapper.writeValueAsString(updatedFilm.toBuilder().id(returnedFilm.getId()).build());
 
@@ -264,7 +275,86 @@ class FilmControllerTest {
                 .andExpect(jsonPath("$.id").value(returnedFilm.getId()))
                 .andExpect(jsonPath("$.description").value("super epic saga"));
 
-        final int filmsSize = filmController.getAllFilms().size();
+        final int filmsSize = filmService.getAllFilms().size();
         assertEquals(1, filmsSize, String.format("Ожидался размер списка 1, а получен %s", filmsSize));
+    }
+
+    @Test
+    void shouldReturnListOfPopularFilms_Endpoint_GetPopular() throws Exception {
+        filmService.addFilm(film);
+        filmService.addFilm(secondFilm);
+
+        MvcResult result = mockMvc.perform(get("/films/popular").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getPopularFilms"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Film> popularFilms = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(Film.class).getValueType());
+
+        assertEquals(2, popularFilms.size(), String.format("Ожидался размер списка 2, а получен %s", popularFilms.size()));
+    }
+
+    @Test
+    void shouldReturnEmptyListOfPopularFilms_Endpoint_GetPopular() throws Exception {
+        MvcResult result = mockMvc.perform(get("/films/popular").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getPopularFilms"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Film> popularFilms = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(Film.class).getValueType());
+
+        assertEquals(Collections.emptyList(), popularFilms, String.format("Ожидался пустой список, а получен %s", popularFilms));
+    }
+
+    @Test
+    void shouldReturnEmptyList_Endpoint_GetFilms() throws Exception {
+        MvcResult result = mockMvc.perform(get("/films").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getAllFilms"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Film> films = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(Film.class).getValueType());
+
+        assertEquals(Collections.emptyList(), films, String.format("Ожидался пустой список, а получен %s", films));
+    }
+
+    @Test
+    void shouldReturnListOfAllFilms_Endpoint_GetFilms() throws Exception {
+        filmService.addFilm(film);
+        filmService.addFilm(secondFilm);
+
+        MvcResult result = mockMvc.perform(get("/films").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getAllFilms"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Film> films = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(Film.class).getValueType());
+
+        assertEquals(2, films.size(), String.format("Ожидался размер списка 2, а получен %s", films.size()));
+    }
+
+    @Test
+    void shouldReturnFilm_Endpoint_GetFilm() throws Exception {
+        final String jsonFilm = objectMapper.writeValueAsString(film);
+
+        MvcResult result = this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonFilm)).andReturn();
+
+        final Film returnedFilm = objectMapper.readValue(result.getResponse().getContentAsString(), Film.class);
+        Long returnedFilmId = returnedFilm.getId();
+
+        mockMvc.perform(get("/films/{id}", returnedFilmId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getFilmById"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(returnedFilmId));
     }
 }

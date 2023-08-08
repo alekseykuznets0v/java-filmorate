@@ -1,29 +1,38 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserControllerTest {
     private User user;
+    private User secondUser;
     private User invalidEmailUser;
     private User wrongEmailFormatUser;
     private User blankLoginUser;
@@ -32,12 +41,10 @@ class UserControllerTest {
     private User notExistingUser;
     private User alreadyExistingUser;
     private User updatedUser;
-    @Autowired
-    private UserController userController;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    MockMvc mockMvc;
+    private final UserController userController;
+    private final UserService userService;
+    private final ObjectMapper objectMapper;
+    private final MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
@@ -49,6 +56,7 @@ class UserControllerTest {
                 .birthday(testDate)
                 .build();
         user = sampleUser;
+        secondUser = sampleUser.toBuilder().name("gendalf").login("white_mage").email("2@yandex.ru").birthday(testDate).build();
         invalidEmailUser = sampleUser.toBuilder().email("").build();
         wrongEmailFormatUser = sampleUser.toBuilder().email(".@.@d").build();
         blankLoginUser = sampleUser.toBuilder().login("").build();
@@ -61,30 +69,29 @@ class UserControllerTest {
 
     @AfterEach
     void cleanStorage() {
-        userController.getUserServiceImpl().deleteAllUsers();
-        userController.getUserServiceImpl().resetIdentifier();
+        userService.deleteAllUsers();
     }
 
     @Test
     void shouldAddUser_Endpoint_PostUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(user);
-        user.setId(1);
-        user.setName(user.getLogin());
-        final String expectedJsonUser = objectMapper.writeValueAsString(user);
 
-        this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser))
+        MvcResult result = this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON)
+                .content(jsonUser))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("add"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json(expectedJsonUser))
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name").exists());
+                .andExpect(jsonPath("$.name").exists()).andReturn();
 
-        final int usersSize = userController.getAllUsers().size();
+        final int usersSize = userService.getAllUsers().size();
+        final User returnedUser = objectMapper.readValue(result.getResponse().getContentAsString(), User.class);
+        Long returnedUserId = returnedUser.getId();
+        final User savedUser = userController.getUserById(returnedUserId);
+        Long savedUserId = savedUser.getId();
+
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
-
-        final User savedUser = userController.getUserServiceImpl().getUserById(1L);
-        assertEquals(1, savedUser.getId(), String.format("Ожидался id=1, а получен id=%s", savedUser.getId()));
+        assertEquals(returnedUserId, savedUserId, String.format("Ожидался id=%s, а получен id=%s", returnedUser, savedUserId));
     }
 
     @Test
@@ -205,19 +212,71 @@ class UserControllerTest {
     @Test
     void shouldUpdateUser_Endpoint_PutUsers() throws Exception {
         final String jsonUser = objectMapper.writeValueAsString(user);
-        final String jsonUser1 = objectMapper.writeValueAsString(updatedUser);
+        MvcResult result = mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonUser))
+                .andReturn();
 
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser));
+        final User returnedUser = objectMapper.readValue(result.getResponse().getContentAsString(), User.class);
+        final String jsonUser1 = objectMapper.writeValueAsString(updatedUser.toBuilder().id(returnedUser.getId()).build());
 
         mockMvc.perform(put("/users").contentType(MediaType.APPLICATION_JSON).content(jsonUser1))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(handler().methodName("update"))
                 .andExpect(content().json(jsonUser1))
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(returnedUser.getId()))
                 .andExpect(jsonPath("$.login").value("awesome_bilbo"));
 
-        final int usersSize = userController.getAllUsers().size();
+        final int usersSize = userService.getAllUsers().size();
         assertEquals(1, usersSize, String.format("Ожидался размер списка 1, а получен %s", usersSize));
+    }
+
+    @Test
+    void shouldReturnEmptyList_Endpoint_GetUsers() throws Exception {
+        MvcResult result = mockMvc.perform(get("/users").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getAllUsers"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<User> users = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(User.class).getValueType());
+
+        assertEquals(Collections.emptyList(), users, String.format("Ожидался пустой список, а получен %s", users));
+    }
+
+    @Test
+    void shouldReturnListOfAllUsers_Endpoint_GetUsers() throws Exception {
+        userService.addUser(user);
+        userService.addUser(secondUser);
+
+        MvcResult result = mockMvc.perform(get("/users").accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getAllUsers"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Film> films = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(User.class).getValueType());
+
+        assertEquals(2, films.size(), String.format("Ожидался размер списка 2, а получен %s", films.size()));
+    }
+
+    @Test
+    void shouldReturnUser_Endpoint_GetUser() throws Exception {
+        final String jsonUser = objectMapper.writeValueAsString(user);
+
+        MvcResult result = this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON)
+                .content(jsonUser)).andReturn();
+
+        final User returnedUser = objectMapper.readValue(result.getResponse().getContentAsString(), User.class);
+        Long returnedUserId = returnedUser.getId();
+
+        mockMvc.perform(get("/users/{id}", returnedUserId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getUserById"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(returnedUserId));
     }
 }

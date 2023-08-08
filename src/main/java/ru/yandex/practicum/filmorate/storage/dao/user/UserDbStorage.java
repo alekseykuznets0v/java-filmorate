@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -49,6 +50,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
+        isEmailExist(user.getEmail());
+        log.info("В БД отправлен запрос addUser c параметром " + user);
         String updateRequest = "INSERT INTO users (email, login, name, birthday)" +
                                 "VALUES (?, ?, ?, ?)";
 
@@ -115,7 +118,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void deleteAllUsers() {
         log.info("В БД отправлен запрос deleteAllUsers");
-        String request = "TRUNCATE TABLE users";
+        String request = "DELETE " + FROM_USERS;
         jdbcTemplate.execute(request);
     }
 
@@ -147,7 +150,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void isUserIdExist(Long id) {
-        log.info("В БД отправлен запрос isUserIdExist с параметром" + id);
+        log.info("В БД отправлен запрос isUserIdExist с параметром " + id);
         String request = "SELECT id " +
                 FROM_USERS +
                 WHERE_ID;
@@ -155,6 +158,18 @@ public class UserDbStorage implements UserStorage {
 
         if(!idRows.next()) {
             throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+        }
+    }
+
+    private void isEmailExist(String email) {
+        log.info("В БД отправлен запрос isUserIdExist с параметром " + email);
+        String request = "SELECT id " +
+                FROM_USERS +
+                "WHERE email=?";
+        SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, email);
+
+        if(idRows.next()) {
+            throw new AlreadyExistsException(String.format("Пользователь с email=%s уже существует", email));
         }
     }
 
