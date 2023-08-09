@@ -45,7 +45,7 @@ public class MpaDaoImpl implements MpaDao {
                          "WHERE id = ?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
-        if(!idRows.next()) {
+        if (!idRows.next()) {
             throw new NotFoundException(String.format("MPA рейтинг с id=%s не найден", id));
         }
     }

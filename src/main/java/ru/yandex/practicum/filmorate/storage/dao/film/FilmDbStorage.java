@@ -146,7 +146,7 @@ public class FilmDbStorage implements FilmStorage {
                          WHERE_ID;
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
-        if(!idRows.next()) {
+        if (!idRows.next()) {
             throw new NotFoundException(String.format("Фильм с id=%s не найден", id));
         }
     }
@@ -183,7 +183,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void addGenresForFilm(Long filmId, Set<Genre> genres) {
-        if(!genres.isEmpty()) {
+        if (!genres.isEmpty()) {
             log.info("В БД отправлен запрос addGenresForFilm с параметрами filmId=" + filmId + " и genres=" + genres);
             String request = "INSERT INTO film_genres (film_id, genre_id) " +
                              "VALUES (?, ?)";
@@ -228,7 +228,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getReleaseDate());
 
-        if(idRows.next()) {
+        if (idRows.next()) {
             throw new AlreadyExistsException("Такой фильм уже существует в БД");
         }
     }

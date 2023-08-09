@@ -59,7 +59,7 @@ public class GenreDaoImpl implements GenreDao {
                          "WHERE id = ?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
-        if(!idRows.next()) {
+        if (!idRows.next()) {
             throw new NotFoundException(String.format("Жанр с id=%s не найден", id));
         }
     }

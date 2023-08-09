@@ -156,7 +156,7 @@ public class UserDbStorage implements UserStorage {
                 WHERE_ID;
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
-        if(!idRows.next()) {
+        if (!idRows.next()) {
             throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
         }
     }
@@ -168,7 +168,7 @@ public class UserDbStorage implements UserStorage {
                 "WHERE email=?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, email);
 
-        if(idRows.next()) {
+        if (idRows.next()) {
             throw new AlreadyExistsException(String.format("Пользователь с email=%s уже существует", email));
         }
     }
