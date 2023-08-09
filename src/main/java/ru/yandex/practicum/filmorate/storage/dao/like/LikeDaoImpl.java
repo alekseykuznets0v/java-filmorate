@@ -13,6 +13,7 @@ import java.util.Set;
 @Slf4j
 public class LikeDaoImpl implements LikeDao {
     private final JdbcTemplate jdbcTemplate;
+
     @Override
     public void addLike(Long filmId, Long userId) {
         log.info("В БД отправлен запрос addLike с параметрами filmId=" + filmId + " и userId=" + userId);
