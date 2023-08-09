@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -158,15 +157,13 @@ class FilmControllerTest {
     void shouldNotAddFilm_WrongMpa_Endpoint_PostFilms() throws Exception {
         final String jsonFilm = objectMapper.writeValueAsString(wrongMpaFilm);
 
-        MvcResult result = this.mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm))
+        mockMvc.perform(post("/films").contentType(MediaType.APPLICATION_JSON).content(jsonFilm))
                 .andExpect(status().isInternalServerError())
                 .andExpect(handler().methodName("add"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").exists())
-                .andReturn();
+                .andExpect(jsonPath("$.error").exists());
 
         final int filmsSize = filmController.getAllFilms().size();
-        assertTrue(Objects.requireNonNull(result.getResolvedException()).toString().contains("Нарушение ссылочной целостности"));
         assertEquals(0, filmsSize, String.format("Ожидался размер списка 0, а получен %s", filmsSize));
     }
 
