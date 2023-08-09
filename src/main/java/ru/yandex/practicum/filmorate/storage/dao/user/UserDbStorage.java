@@ -173,7 +173,7 @@ public class UserDbStorage implements UserStorage {
         }
     }
 
-    private User makeUser (ResultSet rs) throws SQLException {
+    private User makeUser(ResultSet rs) throws SQLException {
         Long userId = rs.getLong("id");
         return User.builder()
                 .id(userId)

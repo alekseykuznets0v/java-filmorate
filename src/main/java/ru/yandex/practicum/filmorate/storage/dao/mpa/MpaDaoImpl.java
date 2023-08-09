@@ -50,7 +50,7 @@ public class MpaDaoImpl implements MpaDao {
         }
     }
 
-    private MpaRating makeMpaRating (ResultSet rs) throws SQLException {
+    private MpaRating makeMpaRating(ResultSet rs) throws SQLException {
         return new MpaRating(rs.getInt("id"), rs.getString("name"));
     }
 }
