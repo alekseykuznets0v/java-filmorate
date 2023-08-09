@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public interface GenreDao {
-    Genre getGenreById (int id);
+    Genre getGenreById(int id);
 
     Collection<Genre> getAllGenres();
 
