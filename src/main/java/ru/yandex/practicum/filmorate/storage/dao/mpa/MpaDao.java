@@ -6,5 +6,6 @@ import java.util.Collection;
 
 public interface MpaDao {
     MpaRating getMpaById(int id);
+
     Collection<MpaRating> getAllMpa();
 }
