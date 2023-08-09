@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.dao.mpa.MpaDao;
 
 import java.util.Collection;
+
 @Service
 @RequiredArgsConstructor
 public class MpaServiceImpl implements MpaService {
