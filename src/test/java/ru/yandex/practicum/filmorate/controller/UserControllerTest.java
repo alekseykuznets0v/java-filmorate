@@ -15,11 +15,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.storage.dao.friends.FriendsDao;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,6 +46,7 @@ class UserControllerTest {
     private User updatedUser;
     private final UserController userController;
     private final UserService userService;
+    private final FriendsDao friendsDao;
     private final ObjectMapper objectMapper;
     private final MockMvc mockMvc;
 
@@ -280,5 +283,92 @@ class UserControllerTest {
                 .andExpect(handler().methodName("getUserById"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(returnedUserId));
+    }
+
+    @Test
+    void shouldAddFriend_Endpoint_PutFriend() throws Exception {
+        User first = userService.addUser(user);
+        User second = userService.addUser(secondUser);
+        Long firstUserId = first.getId();
+        Long secondUserId = second.getId();
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", firstUserId, secondUserId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("addFriend"));
+
+        Set<Long> expectedFirstUserFriends = Set.of(secondUserId);
+        Set<Long> expectedSecondUserFriends = Collections.emptySet();
+        Set<Long> firstUserFriends = userService.getUserById(firstUserId).getFriends();
+        Set<Long> secondUserFriends = userService.getUserById(secondUserId).getFriends();
+
+        assertEquals(expectedFirstUserFriends, firstUserFriends, "Списки друзей первого пользователя не совпадают");
+        assertEquals(expectedSecondUserFriends, secondUserFriends, "Списки друзей второго пользователя не совпадают");
+    }
+
+    @Test
+    void shouldDeleteFriend_Endpoint_DeleteFriend() throws Exception {
+        User first = userService.addUser(user);
+        User second = userService.addUser(secondUser);
+        Long firstUserId = first.getId();
+        Long secondUserId = second.getId();
+
+        friendsDao.addFriendRequest(firstUserId, secondUserId);
+        Set<Long> expectedFirstUserFriends = Set.of(secondUserId);
+        Set<Long> firstUserFriends = userService.getUserById(firstUserId).getFriends();
+
+        assertEquals(expectedFirstUserFriends, firstUserFriends, "Списки друзей первого пользователя не совпадают");
+
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", firstUserId, secondUserId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("deleteFriend"));
+
+        Set<Long> expectedFriends = Collections.emptySet();
+        Set<Long> friends = userService.getUserById(firstUserId).getFriends();
+
+        assertEquals(expectedFriends, friends, "Список друзей первого пользователя должен быть пуст");
+    }
+
+    @Test
+    void shouldReturnFriendsList_Endpoint_GetFriend() throws Exception {
+        User first = userService.addUser(user);
+        User second = userService.addUser(secondUser);
+        Long firstUserId = first.getId();
+        Long secondUserId = second.getId();
+
+        friendsDao.addFriendRequest(firstUserId, secondUserId);
+
+        MvcResult result = mockMvc.perform(get("/users/{id}/friends", firstUserId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getFriends")).andReturn();
+
+        List<User> expectedFirstUserFriends = List.of(second);
+        List<User> friends = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(User.class).getValueType());
+
+        assertEquals(expectedFirstUserFriends, friends, "Списки друзей первого пользователя не совпадают");
+    }
+
+    @Test
+    void shouldReturnCommonFriends_Endpoint_GetCommon() throws Exception {
+        User first = userService.addUser(user);
+        User second = userService.addUser(secondUser);
+        User third = userService.addUser(thirdUser);
+        Long firstUserId = first.getId();
+        Long secondUserId = second.getId();
+        Long thirdUserId = third.getId();
+
+        friendsDao.addFriendRequest(firstUserId, thirdUserId);
+        friendsDao.addFriendRequest(secondUserId, thirdUserId);
+
+        MvcResult result = mockMvc.perform(get("/users/{id}/friends/common/{otherId}",
+                        firstUserId, secondUserId).accept(MediaType.ALL))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getCommonFriends")).andReturn();
+
+        List<User> expectedCommonFriends = List.of(third);
+        List<User> commonFriends = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readerForListOf(User.class).getValueType());
+
+        assertEquals(expectedCommonFriends, commonFriends, "Списки общих друзей не совпадают");
     }
 }
