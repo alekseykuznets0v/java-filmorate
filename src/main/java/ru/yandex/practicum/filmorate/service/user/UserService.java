@@ -23,6 +23,4 @@ public interface UserService {
     User updateUser(User user);
 
     void deleteAllUsers();
-
-    void resetIdentifier();
 }

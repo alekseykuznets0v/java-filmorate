@@ -14,15 +14,13 @@ import java.util.Set;
 @Slf4j
 public class FriendsDaoImpl implements FriendsDao {
     private final JdbcTemplate jdbcTemplate;
-    private static final String WHERE_USER_ID = "WHERE user_id = ? ";
-    private static final String AND_FRIEND_ID = "AND friend_id = ? ";
 
     @Override
     public Set<Long> getFriendsIdByUserId(Long userId) {
         log.info("В БД отправлен запрос getFriendsIdByUserId с параметром" + userId);
         String request = "SELECT friend_id " +
                          "FROM friends " +
-                         WHERE_USER_ID +
+                         "WHERE user_id = ? " +
                          "AND approved = true";
 
         return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> rs.getLong("friend_id"), userId));
@@ -35,23 +33,24 @@ public class FriendsDaoImpl implements FriendsDao {
                          "VALUES (?, ?, ?)";
         String updateApproval = "UPDATE friends " +
                                 "SET approved = true " +
-                                WHERE_USER_ID +
-                                AND_FRIEND_ID;
+                                "WHERE user_id = ? " +
+                                "AND friend_id = ?";
 
         if (isReverseFriendRequestExists(fromUserId, toFriendId)) {
             jdbcTemplate.update(updateApproval, toFriendId, fromUserId);
+            jdbcTemplate.update(request, fromUserId, toFriendId, true);
+        } else {
+            jdbcTemplate.update(request, fromUserId, toFriendId, true);
+            jdbcTemplate.update(request, toFriendId, fromUserId, false);
         }
-
-        jdbcTemplate.update(request, fromUserId, toFriendId, true);
-        jdbcTemplate.update(request, toFriendId, fromUserId, false);
     }
 
     @Override
     public void deleteFriend(Long userId, Long friendId) {
         log.info("В БД отправлен запрос deleteFriend с параметрами userId=" + userId + " и friendId=" + friendId);
         String request = "DELETE FROM friends " +
-                         WHERE_USER_ID +
-                         AND_FRIEND_ID;
+                         "WHERE user_id = ? " +
+                         "AND friend_id = ?";
         jdbcTemplate.update(request, userId, friendId);
     }
 
@@ -61,8 +60,8 @@ public class FriendsDaoImpl implements FriendsDao {
     private boolean isReverseFriendRequestExists(Long fromUserId, Long toFriendId) {
         String request = "SELECT * " +
                          "FROM friends " +
-                         WHERE_USER_ID +
-                         AND_FRIEND_ID;
+                         "WHERE user_id = ? " +
+                         "AND friend_id = ?";
         log.info("В БД отправлен запрос isReverseFriendRequestExists с параметрами userId=" + toFriendId + " и friendId=" + fromUserId);
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(request, toFriendId, fromUserId);

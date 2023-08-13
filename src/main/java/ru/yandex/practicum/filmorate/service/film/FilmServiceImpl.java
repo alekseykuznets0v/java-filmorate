@@ -1,39 +1,42 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.dao.film.FilmStorage;
 
 import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
-
-    @Autowired
-    public FilmServiceImpl(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                           @Qualifier("UserDbStorage") UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-    }
 
     @Override
     public void addLike(Long userId, Long filmId) {
-        userStorage.isUserIdExist(userId);
-        filmStorage.addLike(userId, filmId);
+        int result = filmStorage.addLike(userId, filmId);
+
+        if (result == 0) {
+            throw new NotFoundException("Фильм или пользователь с таким id не найден");
+        }
+
+        log.info("Добавлен лайк пользователя с id={} к фильму с id={}", userId, filmId);
     }
 
     @Override
     public void deleteLike(Long userId, Long filmId) {
-        userStorage.isUserIdExist(userId);
-        filmStorage.deleteLike(userId, filmId);
+        int result = filmStorage.deleteLike(userId, filmId);
+
+        if (result == 0) {
+            throw new NotFoundException("Фильм или пользователь с таким id не найден");
+        }
+
+        log.info("Удален лайк пользователя с id={} к фильму с id={}", userId, filmId);
     }
 
     @Override
@@ -49,12 +52,24 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film addFilm(Film film) {
-        return filmStorage.addFilm(film);
+        Optional<Film> optionalFilm = filmStorage.addFilm(film);
+
+        if (optionalFilm.isPresent()) {
+            return optionalFilm.get();
+        } else {
+            throw new AlreadyExistsException("Такой фильм уже существует в БД");
+        }
     }
 
     @Override
     public Film updateFilm(Film film) {
-        return filmStorage.updateFilm(film);
+        Optional<Film> optionalFilm = filmStorage.getFilmById(film.getId());
+
+        if (optionalFilm.isPresent()) {
+            return filmStorage.updateFilm(film);
+        } else {
+            throw new NotFoundException(String.format("Фильм с id=%s не найден", film.getId()));
+        }
     }
 
     @Override
@@ -64,17 +79,17 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film getFilmById(Long id) {
-        return filmStorage.getFilmById(id);
+        Optional<Film> film = filmStorage.getFilmById(id);
+
+        if (film.isPresent()) {
+            return film.get();
+        } else {
+            throw new NotFoundException(String.format("Фильм с id=%s не найден", id));
+        }
     }
 
     @Override
     public void deleteAllFilms() {
         filmStorage.deleteAllFilms();
     }
-
-    @Override
-    public void resetIdentifier() {
-        filmStorage.setIdentifier(0);
-    }
-
 }

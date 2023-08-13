@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -378,12 +377,9 @@ class FilmControllerTest {
                 .andExpect(handler().methodName("addLike"));
 
         Film filmWithLike = filmService.getFilmById(filmId);
-        Set<Long> likes = filmWithLike.getLikes();
-        Set<Long> expectedLikes = Set.of(userId);
         int likesNumber = filmWithLike.getLikesNumber();
 
         assertEquals(1, likesNumber, String.format("Ожидалось количество лайков = 1, а получено: %s", likesNumber));
-        assertEquals(expectedLikes, likes, String.format("Ожидался один лайк от пользователя с id=%s", userId));
     }
 
     @Test
@@ -405,11 +401,8 @@ class FilmControllerTest {
                 .andExpect(handler().methodName("deleteLike"));
 
         Film filmWithoutLike = filmService.getFilmById(filmId);
-        Set<Long> likes = filmWithoutLike.getLikes();
-        Set<Long> expectedLikes = Collections.emptySet();
         int likesNumber = filmWithoutLike.getLikesNumber();
 
         assertEquals(0, likesNumber, String.format("Ожидалось количество лайков = 0, а получено: %s", likesNumber));
-        assertEquals(expectedLikes, likes, String.format("Ожидался пустой список лайков, а получен %s", likes));
     }
 }

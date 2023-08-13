@@ -15,21 +15,19 @@ public class LikeDaoImpl implements LikeDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void addLike(Long filmId, Long userId) {
+    public int addLike(Long filmId, Long userId) {
         log.info("В БД отправлен запрос addLike с параметрами filmId=" + filmId + " и userId=" + userId);
         String request = "INSERT INTO likes (film_id, user_id) " +
                          "VALUES (?, ?)";
-        jdbcTemplate.update(request, filmId, userId);
-        log.info("Добавлен лайк пользователя с id={} к фильму с id={}", userId, filmId);
+        return jdbcTemplate.update(request, filmId, userId);
     }
 
     @Override
-    public void deleteLike(Long filmId, Long userId) {
+    public int deleteLike(Long filmId, Long userId) {
         log.info("В БД отправлен запрос deleteLike с параметрами filmId=" + filmId + " и userId=" + userId);
         String request = "DELETE FROM likes " +
                          "WHERE film_id = ? AND user_id = ?";
-        jdbcTemplate.update(request, filmId, userId);
-        log.info("Удален лайк пользователя с id={} к фильму с id={}", userId, filmId);
+        return jdbcTemplate.update(request, filmId, userId);
     }
 
     @Override
@@ -40,5 +38,15 @@ public class LikeDaoImpl implements LikeDao {
                          "WHERE film_id = ?";
         log.info("Получен список лайков к фильму с id={}", filmId);
         return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> rs.getLong("user_id"), filmId));
+    }
+
+    @Override
+    public Integer getLikesNumberByFilmId(Long filmId) {
+        log.info("В БД отправлен запрос getLikesNumberByFilmId с параметром: " + filmId);
+        String request = "SELECT COUNT(user_id) AS likes_number " +
+                "FROM likes " +
+                "WHERE film_id = ?";
+        log.info("Получен список лайков к фильму с id={}", filmId);
+        return jdbcTemplate.queryForObject(request, (rs, rowNum) -> rs.getInt("likes_number"), filmId);
     }
 }

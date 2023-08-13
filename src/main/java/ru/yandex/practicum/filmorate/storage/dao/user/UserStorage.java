@@ -1,24 +1,23 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.dao.user;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserStorage {
     Collection<User> getAllUsers();
 
-    User getUserById(Long id);
+    Optional<User> getUserById(Long id);
 
-    User addUser(User user);
+    Optional<User> addUser(User user);
 
     User updateUser(User user);
 
-    void setIdentifier(long identifier);
-
     void isUserIdExist(Long id);
 
-    List<User> getFriends(Long id);
+    List<Optional<User>> getFriends(Long id);
 
     void deleteAllUsers();
 

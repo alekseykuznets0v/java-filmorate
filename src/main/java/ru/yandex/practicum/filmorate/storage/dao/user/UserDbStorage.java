@@ -7,10 +7,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.dao.friends.FriendsDao;
 
 import java.sql.Date;
@@ -20,7 +18,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component("UserDbStorage")
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserDbStorage implements UserStorage {
@@ -39,18 +37,34 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(Long id) {
-        isUserIdExist(id);
+    public Optional<User> getUserById(Long id) {
         log.info("В БД отправлен запрос getUserById c параметром " + id);
         String request = SELECT_ALL +
                          FROM_USERS +
                          WHERE_ID;
-        return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeUser(rs), id);
+
+        SqlRowSet rs = jdbcTemplate.queryForRowSet(request, id);
+
+        if (rs.next()) {
+            return Optional.of(User.builder()
+                    .id(id)
+                    .name(rs.getString("name"))
+                    .email(rs.getString("email"))
+                    .login(rs.getString("login"))
+                    .birthday(Objects.requireNonNull(rs.getDate("birthday")).toLocalDate())
+                    .friends(friendsDao.getFriendsIdByUserId(id))
+                    .build());
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public User addUser(User user) {
-        isEmailExist(user.getEmail());
+    public Optional<User> addUser(User user) {
+        if (isEmailExist(user.getEmail())) {
+            return Optional.empty();
+        }
+
         log.info("В БД отправлен запрос addUser c параметром " + user);
         String updateRequest = "INSERT INTO users (email, login, name, birthday)" +
                                 "VALUES (?, ?, ?, ?)";
@@ -73,7 +87,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        isUserIdExist(user.getId());
         log.info("В БД отправлен запрос updateUser c параметром " + user);
         String request = "UPDATE users " +
                          "SET email = ?, " +
@@ -96,18 +109,8 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.queryForObject(selectRequest, (rs, rowNum) -> makeUser(rs), user.getId());
     }
 
-    /*  Метод setIdentifier нужен для тестирования реализации InMemoryFilmStorage,
-            если функционал хранения данных в оперативной памяти будет не актуален,
-            то метод можно удалить из интерфейса и его реализации, а также сервиса и контроллера
-    */
     @Override
-    public void setIdentifier(long identifier) {
-        log.info("Из сервиса запрошен неподдерживаемый метод setIdentifier");
-        throw new UnsupportedOperationException("Операция setIdentifier для фильмов не поддерживается");
-    }
-
-    @Override
-    public List<User> getFriends(Long id) {
+    public List<Optional<User>> getFriends(Long id) {
         log.info("В БД отправлен запрос getFriends c параметром " + id);
         return friendsDao.getFriendsIdByUserId(id).stream()
                 .mapToLong(Long::valueOf)
@@ -124,7 +127,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteUserById(Long id) {
-        isUserIdExist(id);
         log.info("В БД отправлен запрос deleteUserById с параметром" + id);
         String request = "DELETE " +
                          FROM_USERS +
@@ -161,16 +163,14 @@ public class UserDbStorage implements UserStorage {
         }
     }
 
-    private void isEmailExist(String email) {
+    private boolean isEmailExist(String email) {
         log.info("В БД отправлен запрос isUserIdExist с параметром " + email);
         String request = "SELECT id " +
                 FROM_USERS +
                 "WHERE email=?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, email);
 
-        if (idRows.next()) {
-            throw new AlreadyExistsException(String.format("Пользователь с email=%s уже существует", email));
-        }
+        return idRows.next();
     }
 
     private User makeUser(ResultSet rs) throws SQLException {
