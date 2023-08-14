@@ -24,24 +24,27 @@ import java.util.stream.Collectors;
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendsDao friendsDao;
-    private static final String SELECT_ALL = "SELECT * ";
-    private static final String FROM_USERS = "FROM users ";
-    private static final String WHERE_ID = "WHERE id = ?";
 
     @Override
     public Collection<User> getAllUsers() {
         log.info("В БД отправлен запрос getAllUsers");
-        String request = SELECT_ALL +
-                         FROM_USERS;
-        return jdbcTemplate.query(request, (rs, rowNum) -> makeUser(rs));
+        String request = "SELECT * " +
+                         "FROM users";
+
+        Collection<User> users = jdbcTemplate.query(request, (rs, rowNum) -> makeUserWithoutFriends(rs));
+        Map<Long, Set<Long>> allUsersFriends = friendsDao.getFriendsIdForAllUsers();
+
+        users.forEach(user -> user.setFriends(allUsersFriends.getOrDefault(user.getId(), new HashSet<>())));
+
+        return users;
     }
 
     @Override
     public Optional<User> getUserById(Long id) {
         log.info("В БД отправлен запрос getUserById c параметром " + id);
-        String request = SELECT_ALL +
-                         FROM_USERS +
-                         WHERE_ID;
+        String request = "SELECT * " +
+                         "FROM users " +
+                         "WHERE id = ?";
 
         SqlRowSet rs = jdbcTemplate.queryForRowSet(request, id);
 
@@ -67,7 +70,7 @@ public class UserDbStorage implements UserStorage {
 
         log.info("В БД отправлен запрос addUser c параметром " + user);
         String updateRequest = "INSERT INTO users (email, login, name, birthday)" +
-                                "VALUES (?, ?, ?, ?)";
+                               "VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -93,11 +96,11 @@ public class UserDbStorage implements UserStorage {
                          "login = ?, " +
                          "name = ?, " +
                          "birthday = ? " +
-                         WHERE_ID;
+                         "WHERE id = ?";
 
-        String selectRequest = SELECT_ALL +
-                               FROM_USERS +
-                               WHERE_ID;
+        String selectRequest = "SELECT * " +
+                               "FROM users " +
+                               "WHERE id = ?";
 
         jdbcTemplate.update(request,
                             user.getEmail(),
@@ -121,7 +124,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void deleteAllUsers() {
         log.info("В БД отправлен запрос deleteAllUsers");
-        String request = "DELETE " + FROM_USERS;
+        String request = "DELETE " + "FROM users";
         jdbcTemplate.execute(request);
     }
 
@@ -129,8 +132,8 @@ public class UserDbStorage implements UserStorage {
     public void deleteUserById(Long id) {
         log.info("В БД отправлен запрос deleteUserById с параметром" + id);
         String request = "DELETE " +
-                         FROM_USERS +
-                         WHERE_ID;
+                         "FROM users " +
+                         "WHERE id = ?";
         jdbcTemplate.update(request, id);
     }
 
@@ -154,8 +157,8 @@ public class UserDbStorage implements UserStorage {
     public void isUserIdExist(Long id) {
         log.info("В БД отправлен запрос isUserIdExist с параметром " + id);
         String request = "SELECT id " +
-                FROM_USERS +
-                WHERE_ID;
+                         "FROM users " +
+                         "WHERE id = ?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
         if (!idRows.next()) {
@@ -166,8 +169,8 @@ public class UserDbStorage implements UserStorage {
     private boolean isEmailExist(String email) {
         log.info("В БД отправлен запрос isUserIdExist с параметром " + email);
         String request = "SELECT id " +
-                FROM_USERS +
-                "WHERE email=?";
+                         "FROM users " +
+                         "WHERE email=?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, email);
 
         return idRows.next();
@@ -182,6 +185,17 @@ public class UserDbStorage implements UserStorage {
                 .login(rs.getString("login"))
                 .birthday(rs.getDate("birthday").toLocalDate())
                 .friends(friendsDao.getFriendsIdByUserId(userId))
+                .build();
+    }
+
+    private User makeUserWithoutFriends(ResultSet rs) throws SQLException {
+        Long userId = rs.getLong("id");
+        return User.builder()
+                .id(userId)
+                .name(rs.getString("name"))
+                .email(rs.getString("email"))
+                .login(rs.getString("login"))
+                .birthday(rs.getDate("birthday").toLocalDate())
                 .build();
     }
 }

@@ -63,14 +63,14 @@ class FilmControllerTest {
                 .description("epic saga")
                 .releaseDate(LocalDate.of(2001, 1, 1))
                 .duration(200)
-                .mpa(new MpaRating(1))
+                .mpa(new MpaRating(1L))
                 .build();
         secondFilm = Film.builder()
                 .name("Lord of the Rings")
                 .description("epic fantasy")
                 .releaseDate(LocalDate.of(2001, 1, 1))
                 .duration(228)
-                .mpa(new MpaRating(2))
+                .mpa(new MpaRating(2L))
                 .build();
         blankNameFilm = film.toBuilder().name("").build();
         blankDescriptionFilm = film.toBuilder().description("").build();
@@ -81,7 +81,7 @@ class FilmControllerTest {
         alreadyExistingFilm = film.toBuilder().id(1L).build();
         notExistingFilm = film.toBuilder().id(69L).build();
         updatedFilm = film.toBuilder().id(1L).description("super epic saga").build();
-        wrongMpaFilm = film.toBuilder().mpa(new MpaRating(12)).build();
+        wrongMpaFilm = film.toBuilder().mpa(new MpaRating(12L)).build();
     }
 
     @AfterEach

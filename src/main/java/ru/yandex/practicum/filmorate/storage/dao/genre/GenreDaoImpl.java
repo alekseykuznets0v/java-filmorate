@@ -49,7 +49,8 @@ public class GenreDaoImpl implements GenreDao {
                          "FROM films AS f " +
                          "JOIN film_genres AS fg ON f.id = fg.film_id " +
                          "JOIN genres AS g ON fg.genre_id = g.id " +
-                         "WHERE f.id = ?";
+                         "WHERE f.id = ? " +
+                         "ORDER BY g.id";
         return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> makeGenre(rs), filmId));
     }
 

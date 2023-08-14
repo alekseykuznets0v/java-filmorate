@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class MpaControllerTest {
-    private final MpaController mpaController;
     private final ObjectMapper objectMapper;
     private final MockMvc mockMvc;
 
@@ -53,11 +52,11 @@ class MpaControllerTest {
     @Test
     void shouldReturnAllMpa_Endpoint_GetMpa() throws Exception {
         List<MpaRating> expectedMpa = new ArrayList<>(List.of(
-                new MpaRating(1, "G"),
-                new MpaRating(2, "PG"),
-                new MpaRating(3, "PG-13"),
-                new MpaRating(4, "R"),
-                new MpaRating(5, "NC-17")));
+                new MpaRating(1L, "G"),
+                new MpaRating(2L, "PG"),
+                new MpaRating(3L, "PG-13"),
+                new MpaRating(4L, "R"),
+                new MpaRating(5L, "NC-17")));
 
         mockMvc.perform(get("/mpa").accept(MediaType.ALL))
                 .andExpect(status().isOk())

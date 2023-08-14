@@ -28,13 +28,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getAllFilms() {
-        String request = "SELECT f.id, " +
-                         "f.name, " +
-                         "f.description, " +
-                         "f.release_date, " +
-                         "f.duration, " +
-                         "f.mpa_id, " +
-                         "FROM films AS f ";
+        String request = "SELECT * " +
+                         "FROM films";
         log.info("В БД отправлен запрос getAllFilms");
 
         Collection<Film> films = jdbcTemplate.query(request, (rs, rowNum) -> makeFilmWithoutGenres(rs));
@@ -89,7 +84,7 @@ public class FilmDbStorage implements FilmStorage {
             preparedStatement.setString(2, film.getDescription());
             preparedStatement.setDate(3, Date.valueOf(film.getReleaseDate()));
             preparedStatement.setInt(4, film.getDuration());
-            preparedStatement.setInt(5, film.getMpa().getId());
+            preparedStatement.setLong(5, film.getMpa().getId());
             return preparedStatement;
         }, keyHolder);
 

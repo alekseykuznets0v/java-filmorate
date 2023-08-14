@@ -6,7 +6,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -24,6 +26,25 @@ public class FriendsDaoImpl implements FriendsDao {
                          "AND approved = true";
 
         return new HashSet<>(jdbcTemplate.query(request, (rs, rowNum) -> rs.getLong("friend_id"), userId));
+    }
+
+    @Override
+    public Map<Long, Set<Long>> getFriendsIdForAllUsers() {
+        log.info("В БД отправлен запрос getFriendsIdForAllUsers");
+        String request = "SELECT user_id, friend_id " +
+                         "FROM friends " +
+                         "WHERE approved = true";
+        Map<Long, Set<Long>> allUsersFriends = new HashMap<>();
+
+        jdbcTemplate.query(request, rs -> {
+            Long userId = rs.getLong("user_id");
+            Long friendId = rs.getLong("friend_id");
+
+            allUsersFriends.putIfAbsent(userId, new HashSet<>());
+            allUsersFriends.get(userId).add(friendId);
+        });
+
+        return allUsersFriends;
     }
 
     @Override

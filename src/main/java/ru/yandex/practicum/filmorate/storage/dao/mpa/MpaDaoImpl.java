@@ -17,14 +17,13 @@ import java.util.Collection;
 @Slf4j
 public class MpaDaoImpl implements MpaDao {
     private final JdbcTemplate jdbcTemplate;
-    private static final String FROM_MPA = "FROM mpa ";
 
     @Override
     public MpaRating getMpaById(int id) {
         isMpaIdExist(id);
         log.info("В БД отправлен запрос getMpaById с параметром" + id);
         String request = "SELECT * " +
-                         FROM_MPA +
+                         "FROM mpa " +
                          "WHERE id = ?";
         return jdbcTemplate.queryForObject(request, (rs, rowNum) -> makeMpaRating(rs), id);
     }
@@ -33,7 +32,7 @@ public class MpaDaoImpl implements MpaDao {
     public Collection<MpaRating> getAllMpa() {
         log.info("В БД отправлен запрос getAllMpa");
         String request = "SELECT * " +
-                         FROM_MPA +
+                         "FROM mpa " +
                          "ORDER BY id";
         return jdbcTemplate.query(request, (rs, rowNum) -> makeMpaRating(rs));
     }
@@ -41,7 +40,7 @@ public class MpaDaoImpl implements MpaDao {
     private void isMpaIdExist(Integer id) {
         log.info("В БД отправлен запрос isMpaIdExist с параметром" + id);
         String request = "SELECT id " +
-                         FROM_MPA +
+                         "FROM mpa " +
                          "WHERE id = ?";
         SqlRowSet idRows = jdbcTemplate.queryForRowSet(request, id);
 
@@ -51,6 +50,6 @@ public class MpaDaoImpl implements MpaDao {
     }
 
     private MpaRating makeMpaRating(ResultSet rs) throws SQLException {
-        return new MpaRating(rs.getInt("id"), rs.getString("name"));
+        return new MpaRating(rs.getLong("id"), rs.getString("name"));
     }
 }
