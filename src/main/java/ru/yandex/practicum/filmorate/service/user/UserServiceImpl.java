@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.service.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.dao.user.UserStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -21,31 +23,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addFriend(Long id, Long friendId) {
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
-
-        user.getFriends().add(friendId);
-        friend.getFriends().add(id);
+        userStorage.addFriend(id, friendId);
     }
 
     @Override
     public void deleteFriend(Long id, Long friendId) {
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
-
-        if (user.getFriends().contains(friendId)) {
-            user.getFriends().remove(friendId);
-            friend.getFriends().remove(id);
-        } else {
-            String message = String.format("У пользователя %s нет в списке друга с id=%s", user.getName(), friendId);
-            log.warn(message);
-            throw new NotFoundException(message);
-        }
+        userStorage.deleteFriend(id, friendId);
     }
 
     @Override
     public List<User> getFriends(Long id) {
-        return userStorage.getFriends(id);
+        List<Optional<User>> friends = userStorage.getFriends(id);
+        return friends.stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     @Override
@@ -64,26 +53,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(Long id) {
-        return userStorage.getUserById(id);
+        Optional<User> user = userStorage.getUserById(id);
+
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            throw new NotFoundException(String.format("Пользователь с id=%s не найден", id));
+        }
     }
 
     @Override
     public User addUser(User user) {
-        return userStorage.addUser(user);
+        Optional<User> optionalUser = userStorage.addUser(user);
+
+        if (optionalUser.isPresent()) {
+            return optionalUser.get();
+        } else {
+            throw new AlreadyExistsException(String.format("Пользователь с email=%s уже существует", user.getEmail()));
+        }
     }
 
     @Override
     public User updateUser(User user) {
-        return userStorage.updateUser(user);
+        Optional<User> optionalUser = userStorage.getUserById(user.getId());
+
+        if (optionalUser.isPresent()) {
+            return userStorage.updateUser(user);
+        } else {
+            throw new NotFoundException(String.format("Пользователь с id=%s не найден", user.getId()));
+        }
     }
 
     @Override
     public void deleteAllUsers() {
         userStorage.deleteAllUsers();
-    }
-
-    @Override
-    public void resetIdentifier() {
-        userStorage.setIdentifier(0);
     }
 }

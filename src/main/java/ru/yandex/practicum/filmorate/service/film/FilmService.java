@@ -21,6 +21,4 @@ public interface FilmService {
     Film getFilmById(Long id);
 
     void deleteAllFilms();
-
-    void resetIdentifier();
 }
